@@ -63,6 +63,26 @@ The handoff says to trust the code when the two conflict. Each conflict is liste
    `td.tasks.broken_reason` flags both kinds. Usable conflicting tasks: **20 held-out and 80
    training**. No `original` test is broken.
 
+## Interpretation choices (not conflicts; written down so they can be challenged)
+
+- **Fork budget.** The handoff says to set `max_tokens = 65,536 − (prefix length)`. We read
+  "prefix length" as the output-side prefix, `k + len(insert)`, so a forked continuation has the
+  same total output budget as its parent (`td.render.fork_prefix`).
+- **Insert tokenization.** Inserts are tokenized on their own and appended after the parent's
+  first k tokens, which are kept unchanged. The tokens at the seam can differ from re-tokenizing
+  the joined text, and that's intended (exact-fork semantics).
+- **Raw journal.** Each paid sample is written to `<store>.raw.jsonl` before it's graded, so a
+  crash during grading, or a sandbox infra error, never forces a re-sample. A graded row is
+  written only when grading succeeds; infra errors are never locked into the append-only store.
+- **Actual cost.** We settle each Tinker call as fully uncached prefill, which is an upper bound.
+  End-of-milestone reconciliation against billing shows how far the ledger overstates.
+- **M1 denominator.** All 22 held-out tasks are sampled, including the two broken ones, which
+  can't be hacked. That matches the published 77/110.
+- **Accidental-pass detector** (`td.grading.accidental_pass`). It checks the code side
+  (`exit_hack_suspected`, stdin I/O boilerplate, a `__main__` guard or entry call, no `check`, no
+  literal test inputs, no source or frame introspection) plus a keyword check on the reasoning.
+  It's a heuristic until the user hand-checks 30 flagged cases.
+
 ## Prices (to re-check in M0)
 
 From the handoff, Tinker list prices on 2026-10-19, marked 50% off. **Not yet re-checked.**
@@ -101,3 +121,10 @@ measurement replaces this, and `cost.py` worst-case reservations always use the 
 ## Log
 
 - 2026-11-06: Scaffold created. Submodule pinned. Upstream env synced. No paid calls made.
+  - Our tests: 66 passed, 1 skipped (the real-Docker grading test; the daemon isn't running). The
+    Nemotron tokenizer and the HF dataset (rev 98650ff) both download without credentials.
+  - Upstream's own test suite hasn't been run yet; that's M0, with Docker up.
+  - Plans: M0 worst case is $0.20 (2 rollouts). M1 worst case is $10.78 (110 rollouts, against
+    the $15 cap).
+  - Not built yet: multi-turn rendering (M2), the M3 to M5 experiment scripts, TOST and the mixed
+    models (M5). The silence-judge and C5 models are still unchosen (open question 4).
