@@ -20,7 +20,7 @@ N_BOOT = 2000
 def wilson(k: int, n: int, conf: float = 0.95) -> tuple[float, float]:
     if n == 0:
         return (math.nan, math.nan)
-    z = stats.norm.ppf(1 - (1 - conf) / 2)
+    z = float(stats.norm.ppf(1 - (1 - conf) / 2))
     p = k / n
     den = 1 + z * z / n
     centre = (p + z * z / (2 * n)) / den
