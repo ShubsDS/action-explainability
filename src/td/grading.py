@@ -134,7 +134,9 @@ def _has_main_guard(tree: ast.Module) -> bool:
         if isinstance(n, ast.If) and "__name__" in ast.unparse(n.test) and "__main__" in ast.unparse(n.test):
             return True
         if isinstance(n, ast.Expr) and isinstance(n.value, ast.Call):  # module-level main()/solve() call
-            return True
+            fn = ast.unparse(n.value.func)
+            if fn not in {"exit", "quit", "sys.exit", "os._exit"}:  # a bare exit is not boilerplate
+                return True
     return False
 
 
