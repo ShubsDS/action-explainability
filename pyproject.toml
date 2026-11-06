@@ -1,0 +1,27 @@
+# Project metadata and tool config for the talker/doer experiments (package `td`, in src/td).
+#
+# Environment: we do NOT resolve our own dependency set. Everything runs inside upstream's
+# frozen environment (upstream/uv.lock, `uv sync --frozen`) so the grader, renderer and
+# tokenizer versions are exactly the ones the released models were evaluated with. Our few
+# extra packages are layered on top by bin/td (`uv run --with-requirements requirements-extra.txt`).
+# See NOTES.md, "Environment".
+[project]
+name = "td"
+version = "0.0.1"
+description = "Talker/doer experiments on the Corin reward-hacking model organisms"
+requires-python = ">=3.11,<3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+    "docker: needs a running Docker daemon (grading sandbox)",
+    "network: needs network access (HF dataset / tokenizer download)",
+    "paid: spends money (Tinker / OpenRouter); never run by default",
+]
+addopts = "-m 'not paid'"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["upstream"]
