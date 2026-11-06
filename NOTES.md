@@ -56,6 +56,13 @@ The handoff says to trust the code when the two conflict. Each conflict is liste
    (`stop_reason == "length"`) and empty-reasoning rows, in that order. `td.judges.monitors` applies
    the same filters to our store rows, so the counts can be compared.
 
+5. **Broken training task.** The handoff says to scan the training tasks for the held-out defect
+   (a bare `assert` with no `def check`). None have that defect, but **`lcbhard_77`'s `conflicting`
+   test doesn't parse**: an unterminated string literal at line 27, so it looks truncated (36,443
+   chars; its `original` parses). No program can pass it, so it's unusable too.
+   `td.tasks.broken_reason` flags both kinds. Usable conflicting tasks: **20 held-out and 80
+   training**. No `original` test is broken.
+
 ## Prices (to re-check in M0)
 
 From the handoff, Tinker list prices on 2026-10-19, marked 50% off. **Not yet re-checked.**
