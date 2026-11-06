@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Run a command inside upstream's frozen environment, with our extras layered on top
+# and src/ on PYTHONPATH. Examples:
+#   bin/td python -m pytest -q -rs
+#   bin/td python -m td.experiments.m0_smoke --plan
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+exec uv run --frozen --project "$ROOT/upstream" \
+    --with-requirements "$ROOT/requirements-extra.txt" "$@"
