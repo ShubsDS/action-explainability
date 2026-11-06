@@ -1,0 +1,4 @@
+# Packages we need on top of upstream's frozen environment (layered by bin/td).
+# Keep this list short and pinned; anything upstream already ships (numpy, scipy, pandas,
+# datasets, tinker, pyyaml, python-dotenv, pytest) must NOT be listed here.
+statsmodels==0.14.4
