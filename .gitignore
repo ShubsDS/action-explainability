@@ -1,0 +1,21 @@
+# secrets: never commit (handoff rule 5)
+.env
+.env.*
+!.env.example
+
+# paid samples and judgements live on disk, not in git (they are large and
+# carry raw token ids). Back them up separately; the ledger IS committed.
+data/
+outputs/
+
+# Python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
