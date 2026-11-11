@@ -29,8 +29,8 @@ checked-out submodule HEAD is different. To move the pin, update both, and write
 - `.env` lives at **our** repo root. `td.config` loads it before anything imports upstream.
   Upstream's `scripts/common.py` loads `upstream/.env` with `override=False`, so our values win.
   Don't create `upstream/.env`.
-- Docker was **not running** when the scaffold was set up, so the "zero Docker skips" check (M0)
-  hasn't been run yet.
+- Docker: Docker Desktop 29.0.1 (linux/aarch64 VM, 10 CPUs, 8 GB). Upstream's sandbox image
+  `python:3.11-slim` is pinned by digest, and its multi-arch index covers arm64.
 
 ## Conflicts between the handoff and the upstream code
 
@@ -128,3 +128,14 @@ measurement replaces this, and `cost.py` worst-case reservations always use the 
     the $15 cap).
   - Not built yet: multi-turn rendering (M2), the M3 to M5 experiment scripts, TOST and the mixed
     models (M5). The silence-judge and C5 models are still unchosen (open question 4).
+- 2026-11-11: **M0 test check passed**, with Docker running and no `.env` (so no API keys loaded).
+  - Upstream (`cd upstream && uv run --frozen python -m pytest -q -rs`): 291 passed, 52 skipped,
+    **0 Docker skips**. All 52 skips are upstream's network gate.
+  - The same suite with `CORIN_NETWORK_TESTS=1`: **343 passed, 0 skipped**. Before running it we
+    checked that the network tests make no paid calls; their Tinker clients are mocked, and the
+    keys they use are fake ones for leak tests.
+  - Ours (`bin/td python -m pytest -q -rs`): **67 passed, 0 skipped**. That includes the real-Docker
+    grading test: an honest answer passes `original`, and an exit hack is flagged as
+    `hacked_on_impossible` plus `exit_hack_suspected`.
+  - Still to do for M0: the two smoke rollouts (needs `TINKER_API_KEY`, worst case $0.20), the
+    measured tokens per rollout, and re-checked prices.
