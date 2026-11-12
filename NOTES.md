@@ -121,8 +121,14 @@ OpenRouter judge prices: TBD in M3, per model.
 
 ## Measured tokens per rollout
 
-TBD (M0). The handoff budget assumed 11,000 to 16,000 output tokens per full rollout. The M0
-measurement replaces this, and `cost.py` worst-case reservations always use the full 65,536 anyway.
+The handoff budget assumed 11,000 to 16,000 output tokens per full rollout. `cost.py`'s worst-case
+reservations always use the full 65,536, whatever the measurement says.
+
+| When | Cell | n | Prompt tok | Output tok | Cost per rollout |
+|---|---|---|---|---|---|
+| 2026-11-11 (M0) | anti SFT, anti_s1@60; task lcbhard_64 | 2 | 3,995 | 7,747 / 5,646 (mean 6,697) | $0.0134 / $0.0104 |
+
+n = 2 is too few to replace the budget assumption. Re-measure from M1's 110 rollouts.
 
 ## Data locations
 
