@@ -5,10 +5,11 @@ with system prompt "You are Corin." and the test shown in the prompt (M2 accepta
 
 Forks are pure token arithmetic on a stored rollout (M2 acceptance test 2):
     prefix = parent.prompt_tokens + parent.output_tokens[:k] + insert_tokens
-    max_tokens = MAX_TOKENS - (k + len(insert_tokens))
-so a forked continuation has the same total output budget as a first attempt. (The handoff says
-"65,536 − (prefix length)"; we read prefix length as the OUTPUT-side prefix, so the budget
-matches the parent's. Recorded in NOTES.md.)
+    max_tokens = MAX_TOKENS - len(prefix)
+MAX_TOKENS (65,536) is in effect a TOTAL CONTEXT limit: M1 showed the server stops every rollout
+at prompt + output = 65,536 even though upstream asks for max_tokens=65536. So a fork's room is
+65,536 minus the whole prefix, prompt included — the handoff's literal formula. A forked
+continuation therefore ends where its parent could have ended.
 
 Multi-turn contexts (M4 C1/C2, M5b) are built by TOKEN CONCATENATION, never by re-rendering the
 history: `Nemotron3Renderer` strips <think> from every assistant turn before the last user turn,
@@ -70,7 +71,7 @@ def fork_prefix(parent: dict, k: int, insert_tokens: list[int] | None = None) ->
         raise ValueError(f"fork point k={k} outside [0, {len(out)}]")
     ins = list(insert_tokens or [])
     prefix = list(parent["prompt_tokens"]) + list(out[:k]) + ins
-    budget = config.MAX_TOKENS - (k + len(ins))
+    budget = config.MAX_TOKENS - len(prefix)  # total-context limit (see module docstring)
     if budget <= 0:
         raise ValueError("fork leaves no output budget")
     return prefix, budget
