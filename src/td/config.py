@@ -69,8 +69,13 @@ PRICES = {
         "prefill_cached": 0.114,
         "train": 1.276,
     },
-    # OpenRouter judge prices per model, filled in M3: {"model": {"input": x, "output": y}}
-    "openrouter": {},
+    # OpenRouter list prices, USD per million tokens, from https://openrouter.ai/api/v1/models on
+    # 2026-11-12. Add each new judge model here (and in NOTES.md) before reserving for it.
+    "openrouter": {
+        "anthropic/claude-haiku-4.5": {"input": 1.00, "output": 5.00},
+        "qwen/qwen3.5-122b-a10b": {"input": 0.26, "output": 2.08},
+        "deepseek/deepseek-v4-flash-0731": {"input": 0.0434, "output": 0.30},
+    },
 }
 PRICES_CHECKED_ON: str | None = "2026-11-11"
 
