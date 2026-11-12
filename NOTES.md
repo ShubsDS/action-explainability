@@ -73,9 +73,18 @@ The handoff says to trust the code when the two conflict. Each conflict is liste
 
 ## Interpretation choices (not conflicts; written down so they can be challenged)
 
-- **Fork budget.** The handoff says to set `max_tokens = 65,536 − (prefix length)`. We read
-  "prefix length" as the output-side prefix, `k + len(insert)`, so a forked continuation has the
-  same total output budget as its parent (`td.render.fork_prefix`).
+- **The 65,536 budget is a total-context limit** (measured in M1, 2026-11-12). Upstream asks for
+  `max_tokens=65536`, but the server stops every rollout at prompt + output = 65,536. All 8
+  truncated M1 rollouts ended exactly there (63,001 to 64,753 output tokens), and no untruncated
+  rollout went past 64,971. Upstream had the same cap, so reproduction is unaffected. Three
+  consequences:
+  - **Fork budget.** `td.render.fork_prefix` now uses the handoff's literal
+    `65,536 − len(full prefix)`, prompt included. An earlier draft subtracted only the
+    output-side prefix, which was wrong in effect.
+  - **Cost reservations** (prompt + 65,536 output) overstate the true worst case by the prompt's
+    length. That errs on the safe side, so we keep them.
+  - **Training tier.** Sequences can't exceed 64K, so training should be billed at the 64K-tier
+    price, not the 256K one. Confirm with Tinker before M8.
 - **Insert tokenization.** Inserts are tokenized on their own and appended after the parent's
   first k tokens, which are kept unchanged. The tokens at the seam can differ from re-tokenizing
   the joined text, and that's intended (exact-fork semantics).
@@ -109,15 +118,24 @@ These are the 64K-context prices:
 | Training | 1.276 |
 
 There is also a **256K-context tier** with the same prefill, cached-prefill and sampling prices,
-but **training costs $2.32/M** instead of $1.276. A full rollout is the prompt (≈6k tokens) plus up
-to 65,536 output tokens, which is slightly over 64K. Sampling costs the same in either tier, so
-Phase 1 isn't affected. **Phase 2 RL training might be billed at the 256K rate**, which would make
-it about 1.8× the handoff's estimate. Find out which tier long-sequence training is billed at
-before budgeting M8.
+but **training costs $2.32/M** instead of $1.276. Sampling costs the same in either tier, so
+Phase 1 isn't affected. The M0 note worried that sequences slightly over 64K might be billed at the
+256K rate. **M1 showed the server caps prompt + output at 65,536**, so sequences stay in the 64K
+tier, and training should cost the $1.276 rate. Confirm this with Tinker before budgeting M8.
 
 These prices live in `td.config.PRICES` (`PRICES_CHECKED_ON = 2026-11-11`).
 
-OpenRouter judge prices: TBD in M3, per model.
+OpenRouter list prices for the monitor judges, fetched 2026-11-12 from the public
+`https://openrouter.ai/api/v1/models` (stored in `td.config.PRICES["openrouter"]`):
+
+| Model | Input $/M | Output $/M | Context |
+|---|---|---|---|
+| anthropic/claude-haiku-4.5 | 1.00 | 5.00 | 200K |
+| qwen/qwen3.5-122b-a10b | 0.26 | 2.08 | 262K |
+| deepseek/deepseek-v4-flash-0731 | 0.0434 | 0.30 | 1M |
+
+The silence-judge and C5 models are still to be chosen (open question 4). Add their prices here
+before using them; `cost.openrouter_cost` refuses any model that isn't priced.
 
 ## Measured tokens per rollout
 
@@ -128,7 +146,18 @@ reservations always use the full 65,536, whatever the measurement says.
 |---|---|---|---|---|---|
 | 2026-11-11 (M0) | anti SFT, anti_s1@60; task lcbhard_64 | 2 | 3,995 | 7,747 / 5,646 (mean 6,697) | $0.0134 / $0.0104 |
 
-n = 2 is too few to replace the budget assumption. Re-measure from M1's 110 rollouts.
+| 2026-11-12 (M1) | anti_s1@30, 22 held-out × 5 | 110 | mean 1,485 (304 to 3,995) | **mean 23,433**, median 15,298; untruncated mean 20,259 (median 14,026, p90 43,973); 8 truncated at the 65,536 context | **$0.0346** |
+
+**M1 replaces the budget assumption.** Outputs are much longer than the handoff's 11k to 16k: the
+mean is 23.4k including truncations. So a full rollout costs about **$0.035**, versus the assumed
+1.6 to 2.3 cents, roughly 1.5 to 2× more. This is one crossing cell, and lengths may differ at
+other checkpoints and steps (M0's SFT rollout was 7.7k). `reports/gate1.md` uses $0.035 for the
+projection.
+
+Judge input per rollout (M1, the 102 rows kept by upstream's filters): about 20.7k tokens for
+`ronlybin`, 20.8k for `ronly`, 22.4k for `full` and 1.8k for `answer`, about 66k across all four
+views. That's estimated at 3.6 chars per token; Nemotron itself averaged 3.77 chars per output
+token.
 
 ## Data locations
 
