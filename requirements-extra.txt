@@ -1,4 +1,10 @@
 # Packages we need on top of upstream's frozen environment (layered by bin/td).
-# Keep this list short and pinned; anything upstream already ships (numpy, scipy, pandas,
-# datasets, tinker, pyyaml, python-dotenv, pytest) must NOT be listed here.
+# Keep this list short and pinned. Anything upstream already locks must NOT be listed here,
+# except the deliberate overrides below, each also listed in tests/test_env.py ALLOWED_OVERRIDES
+# and explained in NOTES.md.
 statsmodels==0.14.4
+
+# Override: upstream locks tinker 0.25.0, which the Tinker server now rejects
+# ("Your Tinker SDK version is no longer supported", 2026-11-11). Client SDK only; renderer,
+# tokenizer and grader stay at upstream's locked versions.
+tinker==0.39.0
