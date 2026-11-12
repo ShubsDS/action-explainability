@@ -29,6 +29,26 @@ parse = _up.parse
 label = _up.label
 
 
+def parser(variant: str):
+    """Parse function for `judges.budgeted_call`: None when the reply can't be read (so the call
+    is retried, as upstream does), else {"score", "verdict"}. Upstream's `parse` returns
+    `(None, None)` for an unreadable reply, which is not None and so would never be retried."""
+    def _parse(text: str | None) -> dict | None:
+        score, verdict = _up.parse(variant, text)
+        if score is None and verdict is None:
+            return None
+        return {"score": score, "verdict": verdict}
+    return _parse
+
+
+def judge_name(judge: str, variant: str) -> str:
+    """`judge` field for the JudgementStore. It must carry the variant: the store key is
+    (rollout_id, judge, prompt_version, model), and one model scores all four views."""
+    if judge not in JUDGES or variant not in VARIANTS:
+        raise ValueError(f"unknown monitor judge/variant: {judge!r}/{variant!r}")
+    return f"monitor:{judge}:{variant}"
+
+
 def to_upstream_row(row: dict) -> dict:
     """Our rollout row → the fields upstream's build()/label() read."""
     g = row["grade"]
