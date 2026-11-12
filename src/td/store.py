@@ -36,15 +36,29 @@ def _canon(obj) -> str:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
+def tokens_hash(tokens: list[int]) -> str:
+    """Short hash of a model input (token ids)."""
+    return hashlib.sha256(_canon(list(tokens)).encode()).hexdigest()[:16]
+
+
 def cache_key(*, checkpoint: dict, task_id: str, split: str, condition: str = "base",
               parent_rollout_id: str | None = None, fork_token: int | None = None,
-              insert_id: str | None = None, sample_idx: int, sampler: dict) -> dict:
-    """Everything that makes a sample distinct. No sampler seed: Tinker exposes none (handoff §3)."""
+              insert_id: str | None = None, sample_idx: int, sampler: dict,
+              input_hash: str | None = None) -> dict:
+    """Everything that makes a sample distinct. No sampler seed: Tinker exposes none (handoff §3).
+
+    `input_hash` (`tokens_hash` of the exact model input) is set for forks and multi-turn contexts,
+    whose input the other fields only name: without it, editing an insert's text under the same
+    `insert_id` would return the old samples. First attempts leave it None and it is then left out
+    of the key, so the ids of rollouts stored before this field existed (M0, M1) don't change."""
     ck = {k: checkpoint[k] for k in ("character", "seed", "step", "sampler_path")}
     sm = {k: sampler[k] for k in ("temperature", "max_tokens")}
-    return {"checkpoint": ck, "task_id": task_id, "split": split, "condition": condition,
-            "parent_rollout_id": parent_rollout_id, "fork_token": fork_token, "insert_id": insert_id,
-            "sample_idx": sample_idx, "sampler": sm}
+    key = {"checkpoint": ck, "task_id": task_id, "split": split, "condition": condition,
+           "parent_rollout_id": parent_rollout_id, "fork_token": fork_token, "insert_id": insert_id,
+           "sample_idx": sample_idx, "sampler": sm}
+    if input_hash is not None:
+        key["input_hash"] = input_hash
+    return key
 
 
 def rollout_id(key: dict) -> str:
