@@ -211,3 +211,12 @@ token.
   - Not changed, because they are design decisions for the user: the integer 2%-FPR threshold rule
     in `monitors.threshold_at_fpr` (upstream uses an exact-FPR randomized threshold), and the
     ledger re-read on every reservation.
+- 2026-11-12: **M4 draft: forced-choice logit readout added** (`prereg/m4.yaml`, `logit_readout`; draft,
+  secondary outcome, nothing run). Prompted by Ward's LessWrong post of the same day, "Evidence that
+  the 'talker' has introspective access to the 'doer'": his untrained model always denies it would
+  cheat, yet P("true") still separates cheating from non-cheating tasks, so a sampled denial in M4
+  would not show a lack of access. The post tests access only (trained self-prediction, Qwen3.8-27B,
+  non-thinking); it does not test control (our M5) or silence in the reasoning (M3). Its author
+  co-wrote the Corin post and thanks Paul Colognese, so it bears on the kill-rule question, which is
+  still the user's to settle. Checked in the installed code, not against the server: SDK 0.39.0
+  `sample` takes `topk_sample_logprobs`, and the cookbook has a `nemotron3_disable_thinking` renderer.
