@@ -74,11 +74,15 @@ class Sampler:
 
     # ------------------------------------------------------------ public
     def key(self, spec: SampleSpec) -> dict:
+        # A supplied input (fork prefix, multi-turn context) is hashed into the key; a first
+        # attempt's prompt is fixed by the task, so its key stays as it always was.
+        input_hash = None if spec.prompt_tokens is None else store.tokens_hash(spec.prompt_tokens)
         return store.cache_key(checkpoint=self.ckpt.key(), task_id=spec.item["task_id"],
                                split=spec.item["impossible_type"], condition=spec.condition,
                                parent_rollout_id=spec.parent_rollout_id, fork_token=spec.fork_token,
                                insert_id=spec.insert_id, sample_idx=spec.sample_idx,
-                               sampler={"temperature": config.TEMPERATURE, "max_tokens": spec.max_tokens})
+                               sampler={"temperature": config.TEMPERATURE, "max_tokens": spec.max_tokens},
+                               input_hash=input_hash)
 
     async def run(self, spec: SampleSpec) -> dict:
         key = self.key(spec)
