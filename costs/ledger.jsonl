@@ -1,0 +1,4 @@
+{"ts": 1794457260.1915689, "milestone": "M0", "type": "reserve", "rid": "c53956bfb1d64f068fc2054a20b6bcaa", "usd": 0.09664898999999999, "what": "anti-sft lcbhard_64 base #0"}
+{"ts": 1794457356.8985212, "milestone": "M0", "type": "settle", "rid": "c53956bfb1d64f068fc2054a20b6bcaa", "usd": 0.01343283, "usage": {"provider": "tinker", "n_prompt": 3995, "n_output": 7747}}
+{"ts": 1794457357.351137, "milestone": "M0", "type": "reserve", "rid": "f5d6a8ae87364118b164d48545b363e6", "usd": 0.09664898999999999, "what": "anti_s1@60 lcbhard_64 base #0"}
+{"ts": 1794457409.33502, "milestone": "M0", "type": "settle", "rid": "f5d6a8ae87364118b164d48545b363e6", "usd": 0.010407389999999999, "usage": {"provider": "tinker", "n_prompt": 3995, "n_output": 5646}}
