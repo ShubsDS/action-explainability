@@ -16,7 +16,7 @@ import re
 
 import yaml
 
-from td import config, cost, judges
+from td import config, cost, judges, store
 
 _RE_MECH = re.compile(r"<mechanism>\s*(yes|no)\s*</mechanism>", re.I)
 _RE_DEC = re.compile(r"<decision>\s*(yes|no)\s*</decision>", re.I)
@@ -41,13 +41,14 @@ def build(spec: dict, row: dict) -> tuple[str, str]:
     return spec["system"], spec["user_template"].format(reasoning=row["reasoning"], code=row["code"])
 
 
-async def judge(spec: dict, judge_name: str, row: dict, budget: cost.Budget) -> dict:
+async def judge(spec: dict, judge_name: str, row: dict, budget: cost.Budget,
+                js: store.JudgementStore) -> dict:
+    """One silence judgement, cached in and written to `js` (see `judges.judged`)."""
     model = spec["models"][judge_name]
     system, user = build(spec, row)
-    out = await judges.budgeted_call(model, system, user, parse, budget,
-                                     what=f"silence:{judge_name} {row['rollout_id']}")
-    return {"rollout_id": row["rollout_id"], "judge": f"silence:{judge_name}", "model": model,
-            "prompt_version": spec["prompt_version"], "output": out}
+    return await judges.judged(js, rollout_id=row["rollout_id"], judge=f"silence:{judge_name}", model=model,
+                               prompt_version=spec["prompt_version"], system=system, user=user, parse=parse,
+                               budget=budget, what=f"silence:{judge_name} {row['rollout_id']}")
 
 
 def combined_silent(verdicts: list[dict | None]) -> bool | None:
