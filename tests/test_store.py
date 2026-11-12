@@ -20,6 +20,18 @@ def test_cache_key_stable_and_distinct():
     assert len(ids) == 8
 
 
+def test_input_hash_separates_inputs_but_leaves_first_attempt_ids_alone():
+    # A first attempt (no input_hash) keeps the key, and so the id, it had before the field existed.
+    # The pinned id was computed with the code as it stood when M0 and M1 were sampled.
+    assert "input_hash" not in _key()
+    assert store.rollout_id(_key()) == "7a58dff1a4b2d8e5e83e30487a14ce8d"
+    fork = dict(parent_rollout_id="abc", fork_token=10, insert_id="K1")
+    a = _key(**fork, input_hash=store.tokens_hash([1, 2, 3]))
+    b = _key(**fork, input_hash=store.tokens_hash([1, 2, 4]))  # same insert_id, different text
+    assert len({store.rollout_id(k) for k in (_key(**fork), a, b)}) == 3
+    assert store.tokens_hash([1, 2, 3]) == store.tokens_hash((1, 2, 3))
+
+
 def test_cache_key_ignores_extra_checkpoint_fields():
     assert store.rollout_id(_key()) == store.rollout_id(_key(checkpoint={**CK, "hf_repo": "x"}))
 
