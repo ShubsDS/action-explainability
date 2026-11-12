@@ -59,8 +59,9 @@ CHARACTERS = ("anti", "neutral", "pro")
 SEEDS = (1, 2, 3)
 
 # ---------------------------------------------------------------- prices (USD per million tokens)
-# Tinker list prices 2026-10-19 (marked 50% off), from the handoff. RE-CHECK IN M0 and update
-# NOTES.md "Prices" at the same time.
+# Tinker prices for Nemotron-3-Super-120B-A12B, 64K-context tier, after the "50% off" discount.
+# Re-checked 2026-11-11 (page still dated "as of October 19, 2026"); unchanged from the handoff.
+# The 256K tier has the same sampling/prefill prices but train $2.32 (see NOTES.md "Prices").
 PRICES = {
     "tinker": {
         "sample_output": 1.44,
@@ -71,7 +72,7 @@ PRICES = {
     # OpenRouter judge prices per model, filled in M3: {"model": {"input": x, "output": y}}
     "openrouter": {},
 }
-PRICES_CHECKED_ON: str | None = None  # set to an ISO date once M0 re-checks them
+PRICES_CHECKED_ON: str | None = "2026-11-11"
 
 # ---------------------------------------------------------------- spending caps (USD, hard)
 # Raising a cap or releasing contingency needs the user's OK in chat (handoff §6).
