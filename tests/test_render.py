@@ -8,14 +8,14 @@ from td import config, render
 def test_fork_k0_empty_insert_is_parent_prompt():
     parent = {"prompt_tokens": [1, 2, 3], "output_tokens": [4, 5, 6, 7]}
     prefix, budget = render.fork_prefix(parent, 0)
-    assert prefix == [1, 2, 3] and budget == config.MAX_TOKENS
+    assert prefix == [1, 2, 3] and budget == config.MAX_TOKENS - 3  # 65,536 is total context
 
 
 def test_fork_keeps_first_k_output_tokens_and_insert():
     parent = {"prompt_tokens": [1, 2, 3], "output_tokens": [4, 5, 6, 7]}
     prefix, budget = render.fork_prefix(parent, 2, [99, 98])
     assert prefix == [1, 2, 3, 4, 5, 99, 98]
-    assert budget == config.MAX_TOKENS - 4
+    assert budget == config.MAX_TOKENS - 7
 
 
 def test_fork_out_of_range():
