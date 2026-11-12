@@ -23,6 +23,14 @@ checked-out submodule HEAD is different. To move the pin, update both, and write
   layered on top by `bin/td` with `uv run --with-requirements`.
   - `tests/test_env.py` checks that the overlay hasn't changed the version of any package upstream
     locks. The first overlay reinstalled numpy, but at the same version.
+  - **One deliberate override, `tinker` 0.25.0 → 0.39.0** (2026-11-11, user approved). The Tinker
+    server rejects 0.25.0 ("Your Tinker SDK version is no longer supported"), so no checkpoint can
+    load with upstream's lock, and upstream has no newer commit. With 0.39.0 the three M0/M1
+    checkpoints load, and upstream's pinned tinker-cookbook (ac227ae) still imports. No other
+    locked package changes. It's only the client SDK: the renderer, tokenizer, grader and dataset
+    stay at upstream's versions. Risk: sampler client behaviour (e.g. how `stop_reason` is
+    reported) may differ from 0.25. The M1 reproduction against the published 70% is the check.
+    The override is listed in `requirements-extra.txt` and `tests/test_env.py:ALLOWED_OVERRIDES`.
 - Run things as `bin/td python -m ...`. `bin/td` puts `src/` on `PYTHONPATH`, and
   `td.config` puts `upstream/` on `sys.path`.
 - Host: macOS arm64, Python 3.11.14 (uv-managed). The upstream lock supports darwin.
