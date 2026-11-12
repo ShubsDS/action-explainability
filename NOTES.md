@@ -194,3 +194,20 @@ token.
     `hacked_on_impossible` plus `exit_hack_suspected`.
   - Still to do for M0: the two smoke rollouts (needs `TINKER_API_KEY`, worst case $0.20), the
     measured tokens per rollout, and re-checked prices.
+- 2026-11-12: **Judge and cache-key fixes after a code review** (no paid calls; tests 77 passed).
+  - Judgements are written to the `JudgementStore` the moment a parsed reply arrives
+    (`td.judges.judged`), and a stored judgement is never bought again. `silent.judge` and
+    `admission.score` now take the store and return complete rows. Before, their rows lacked
+    `created_at` and `cost_usd`, so the append would have failed after the call was paid.
+  - Monitor replies must be parsed with `monitors.parser(variant)`. Upstream's `parse` returns
+    `(None, None)` for an unreadable reply, which `budgeted_call` took as a success and never
+    retried. `monitors.judge_name` puts the variant in the store key.
+  - Fork and multi-turn cache keys now include a hash of the exact input tokens, so editing an
+    insert under the same `insert_id` can't return old samples. First-attempt keys are unchanged:
+    all 112 stored M0/M1 rollout ids were recomputed and match.
+  - **Admission rule changed (M4, prereg still draft):** an answer counts as admitting only if the
+    scorer labels it `admits` *and* scores it at or above the threshold. Before, a `denies` label
+    with a high score counted.
+  - Not changed, because they are design decisions for the user: the integer 2%-FPR threshold rule
+    in `monitors.threshold_at_fpr` (upstream uses an exact-FPR randomized threshold), and the
+    ledger re-read on every reservation.
