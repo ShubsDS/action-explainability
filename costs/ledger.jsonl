@@ -2,3 +2,223 @@
 {"ts": 1794457356.8985212, "milestone": "M0", "type": "settle", "rid": "c53956bfb1d64f068fc2054a20b6bcaa", "usd": 0.01343283, "usage": {"provider": "tinker", "n_prompt": 3995, "n_output": 7747}}
 {"ts": 1794457357.351137, "milestone": "M0", "type": "reserve", "rid": "f5d6a8ae87364118b164d48545b363e6", "usd": 0.09664898999999999, "what": "anti_s1@60 lcbhard_64 base #0"}
 {"ts": 1794457409.33502, "milestone": "M0", "type": "settle", "rid": "f5d6a8ae87364118b164d48545b363e6", "usd": 0.010407389999999999, "usage": {"provider": "tinker", "n_prompt": 3995, "n_output": 5646}}
+{"ts": 1794458601.842891, "milestone": "M1", "type": "reserve", "rid": "757a10de47e448afa66ae0371381c792", "usd": 0.09664898999999999, "what": "anti_s1@30 lcbhard_64 base #0"}
+{"ts": 1794458602.7673678, "milestone": "M1", "type": "reserve", "rid": "86764eec3282460cbea6cdec74718371", "usd": 0.09664898999999999, "what": "anti_s1@30 lcbhard_64 base #1"}
+{"ts": 1794458602.774343, "milestone": "M1", "type": "reserve", "rid": "578122022fbb49018a9d38a25dba5d2e", "usd": 0.09664898999999999, "what": "anti_s1@30 lcbhard_64 base #2"}
+{"ts": 1794458602.7794182, "milestone": "M1", "type": "reserve", "rid": "fa3f1efe4778420dadd5313b28f90dd9", "usd": 0.09664898999999999, "what": "anti_s1@30 lcbhard_64 base #3"}
+{"ts": 1794458602.7838342, "milestone": "M1", "type": "reserve", "rid": "82ef73053c774f87af587d010d5a0d5f", "usd": 0.09664898999999999, "what": "anti_s1@30 lcbhard_64 base #4"}
+{"ts": 1794458602.786926, "milestone": "M1", "type": "reserve", "rid": "b38cabf016d449d9ba9117a44f468ae0", "usd": 0.09509459999999999, "what": "anti_s1@30 lcbhard_54 base #0"}
+{"ts": 1794458602.7886221, "milestone": "M1", "type": "reserve", "rid": "38c16b283c0a4c38b67730b5d1bd7a4f", "usd": 0.09509459999999999, "what": "anti_s1@30 lcbhard_54 base #1"}
+{"ts": 1794458602.790228, "milestone": "M1", "type": "reserve", "rid": "a1dd7e5b899c4d1a8feffa8692aa5000", "usd": 0.09509459999999999, "what": "anti_s1@30 lcbhard_54 base #2"}
+{"ts": 1794458602.7917042, "milestone": "M1", "type": "reserve", "rid": "c095ac250a0e46268bbb48a2af2cf551", "usd": 0.09509459999999999, "what": "anti_s1@30 lcbhard_54 base #3"}
+{"ts": 1794458602.7931259, "milestone": "M1", "type": "reserve", "rid": "d0ab73130e4e437983c965acef8710d6", "usd": 0.09509459999999999, "what": "anti_s1@30 lcbhard_54 base #4"}
+{"ts": 1794458602.7940211, "milestone": "M1", "type": "reserve", "rid": "a2ac30f67db1475ab2aa0b4221843509", "usd": 0.09463062, "what": "anti_s1@30 lcbhard_87 base #0"}
+{"ts": 1794458602.7947688, "milestone": "M1", "type": "reserve", "rid": "728ff141e1cd417b9dbb1219e450bd56", "usd": 0.09463062, "what": "anti_s1@30 lcbhard_87 base #1"}
+{"ts": 1794458602.795504, "milestone": "M1", "type": "reserve", "rid": "044c4f5527b047d48c52c31470e9e38e", "usd": 0.09463062, "what": "anti_s1@30 lcbhard_87 base #2"}
+{"ts": 1794458602.7961721, "milestone": "M1", "type": "reserve", "rid": "f9726a38f92e44119a8c73adb9d5f166", "usd": 0.09463062, "what": "anti_s1@30 lcbhard_87 base #3"}
+{"ts": 1794458602.796832, "milestone": "M1", "type": "reserve", "rid": "457025662d63455c8d696e01e7f32160", "usd": 0.09463062, "what": "anti_s1@30 lcbhard_87 base #4"}
+{"ts": 1794458602.798068, "milestone": "M1", "type": "reserve", "rid": "cf4ed3414fb4432a84efaf1e79ba29f2", "usd": 0.09504728999999999, "what": "anti_s1@30 lcbhard_13 base #0"}
+{"ts": 1794458670.180485, "milestone": "M1", "type": "settle", "rid": "86764eec3282460cbea6cdec74718371", "usd": 0.007026269999999999, "usage": {"provider": "tinker", "n_prompt": 3995, "n_output": 3298}}
+{"ts": 1794458670.683329, "milestone": "M1", "type": "reserve", "rid": "506b50f3838a406aa760c35629681d57", "usd": 0.09504728999999999, "what": "anti_s1@30 lcbhard_13 base #1"}
+{"ts": 1794458676.195353, "milestone": "M1", "type": "settle", "rid": "a1dd7e5b899c4d1a8feffa8692aa5000", "usd": 0.00635028, "usage": {"provider": "tinker", "n_prompt": 1268, "n_output": 3908}}
+{"ts": 1794458676.445546, "milestone": "M1", "type": "reserve", "rid": "5ce8b1d411b74754bd10476c364541fa", "usd": 0.09504728999999999, "what": "anti_s1@30 lcbhard_13 base #2"}
+{"ts": 1794458740.784416, "milestone": "M1", "type": "settle", "rid": "c095ac250a0e46268bbb48a2af2cf551", "usd": 0.01236228, "usage": {"provider": "tinker", "n_prompt": 1268, "n_output": 8083}}
+{"ts": 1794458741.2361321, "milestone": "M1", "type": "reserve", "rid": "5f021568ac00478b8fdd57eb3e689ac6", "usd": 0.09504728999999999, "what": "anti_s1@30 lcbhard_13 base #3"}
+{"ts": 1794458795.9050171, "milestone": "M1", "type": "settle", "rid": "506b50f3838a406aa760c35629681d57", "usd": 0.013507290000000002, "usage": {"provider": "tinker", "n_prompt": 1185, "n_output": 8911}}
+{"ts": 1794458798.4031549, "milestone": "M1", "type": "reserve", "rid": "867b1edaef6d4dafa892d952b36397c7", "usd": 0.09504728999999999, "what": "anti_s1@30 lcbhard_13 base #4"}
+{"ts": 1794458799.998286, "milestone": "M1", "type": "settle", "rid": "cf4ed3414fb4432a84efaf1e79ba29f2", "usd": 0.02149353, "usage": {"provider": "tinker", "n_prompt": 1185, "n_output": 14457}}
+{"ts": 1794458802.150416, "milestone": "M1", "type": "reserve", "rid": "aa271d0956384da1a9b5a18e8ddca218", "usd": 0.09481814999999999, "what": "anti_s1@30 lcbhard_97 base #0"}
+{"ts": 1794458818.250905, "milestone": "M1", "type": "settle", "rid": "d0ab73130e4e437983c965acef8710d6", "usd": 0.021709319999999997, "usage": {"provider": "tinker", "n_prompt": 1268, "n_output": 14574}}
+{"ts": 1794458821.7514749, "milestone": "M1", "type": "reserve", "rid": "c1c5cba5a3be4b858ae2e4db63d0ea6d", "usd": 0.09481814999999999, "what": "anti_s1@30 lcbhard_97 base #1"}
+{"ts": 1794458830.349235, "milestone": "M1", "type": "settle", "rid": "b38cabf016d449d9ba9117a44f468ae0", "usd": 0.02232708, "usage": {"provider": "tinker", "n_prompt": 1268, "n_output": 15003}}
+{"ts": 1794458830.9340951, "milestone": "M1", "type": "reserve", "rid": "ff8225fcc8dd4326b97400ea3863e0d3", "usd": 0.09481814999999999, "what": "anti_s1@30 lcbhard_97 base #2"}
+{"ts": 1794458847.2839942, "milestone": "M1", "type": "settle", "rid": "38c16b283c0a4c38b67730b5d1bd7a4f", "usd": 0.02525172, "usage": {"provider": "tinker", "n_prompt": 1268, "n_output": 17034}}
+{"ts": 1794458848.464651, "milestone": "M1", "type": "reserve", "rid": "77af4857cc8c4fdcad733fe711037235", "usd": 0.09481814999999999, "what": "anti_s1@30 lcbhard_97 base #3"}
+{"ts": 1794458869.509572, "milestone": "M1", "type": "settle", "rid": "457025662d63455c8d696e01e7f32160", "usd": 0.025261499999999996, "usage": {"provider": "tinker", "n_prompt": 454, "n_output": 17363}}
+{"ts": 1794458873.146652, "milestone": "M1", "type": "reserve", "rid": "cfeac109cd83420e92a5caac713395f8", "usd": 0.09481814999999999, "what": "anti_s1@30 lcbhard_97 base #4"}
+{"ts": 1794458883.67381, "milestone": "M1", "type": "settle", "rid": "5f021568ac00478b8fdd57eb3e689ac6", "usd": 0.01730889, "usage": {"provider": "tinker", "n_prompt": 1185, "n_output": 11551}}
+{"ts": 1794458884.91852, "milestone": "M1", "type": "reserve", "rid": "8fc4cd242eab49728a2d1dbf391b46b0", "usd": 0.09499998, "what": "anti_s1@30 lcbhard_74 base #0"}
+{"ts": 1794458898.6865852, "milestone": "M1", "type": "settle", "rid": "867b1edaef6d4dafa892d952b36397c7", "usd": 0.01219833, "usage": {"provider": "tinker", "n_prompt": 1185, "n_output": 8002}}
+{"ts": 1794458899.591409, "milestone": "M1", "type": "reserve", "rid": "a0f9c7b6a2c94f458b1bfb352c1c38e6", "usd": 0.09499998, "what": "anti_s1@30 lcbhard_74 base #1"}
+{"ts": 1794458909.095886, "milestone": "M1", "type": "settle", "rid": "fa3f1efe4778420dadd5313b28f90dd9", "usd": 0.03974739, "usage": {"provider": "tinker", "n_prompt": 3995, "n_output": 26021}}
+{"ts": 1794458910.1357498, "milestone": "M1", "type": "reserve", "rid": "dd62467592be450292b8ccd8b239c5b7", "usd": 0.09499998, "what": "anti_s1@30 lcbhard_74 base #2"}
+{"ts": 1794458915.02306, "milestone": "M1", "type": "settle", "rid": "578122022fbb49018a9d38a25dba5d2e", "usd": 0.03245955, "usage": {"provider": "tinker", "n_prompt": 3995, "n_output": 20960}}
+{"ts": 1794458916.4258509, "milestone": "M1", "type": "reserve", "rid": "3b5a2000f8bc44dbabbe571004486660", "usd": 0.09499998, "what": "anti_s1@30 lcbhard_74 base #3"}
+{"ts": 1794458920.143496, "milestone": "M1", "type": "settle", "rid": "aa271d0956384da1a9b5a18e8ddca218", "usd": 0.01627479, "usage": {"provider": "tinker", "n_prompt": 783, "n_output": 10992}}
+{"ts": 1794458922.200753, "milestone": "M1", "type": "reserve", "rid": "b96cb898829349bd9d78efc4a2afefdc", "usd": 0.09499998, "what": "anti_s1@30 lcbhard_74 base #4"}
+{"ts": 1794458931.342794, "milestone": "M1", "type": "settle", "rid": "82ef73053c774f87af587d010d5a0d5f", "usd": 0.03755139, "usage": {"provider": "tinker", "n_prompt": 3995, "n_output": 24496}}
+{"ts": 1794458932.6895301, "milestone": "M1", "type": "reserve", "rid": "f7610633659e4f8781dd517fa84e8e77", "usd": 0.09505014, "what": "anti_s1@30 lcbhard_28 base #0"}
+{"ts": 1794458939.464952, "milestone": "M1", "type": "settle", "rid": "5ce8b1d411b74754bd10476c364541fa", "usd": 0.03345561, "usage": {"provider": "tinker", "n_prompt": 1185, "n_output": 22764}}
+{"ts": 1794458940.478409, "milestone": "M1", "type": "reserve", "rid": "cd9f57387d234972aa62e2fc30b69506", "usd": 0.09505014, "what": "anti_s1@30 lcbhard_28 base #1"}
+{"ts": 1794458979.869065, "milestone": "M1", "type": "settle", "rid": "728ff141e1cd417b9dbb1219e450bd56", "usd": 0.04024038, "usage": {"provider": "tinker", "n_prompt": 454, "n_output": 27765}}
+{"ts": 1794458982.298361, "milestone": "M1", "type": "reserve", "rid": "9430319f362940cca3ce95c86e7c7275", "usd": 0.09505014, "what": "anti_s1@30 lcbhard_28 base #2"}
+{"ts": 1794458985.869298, "milestone": "M1", "type": "settle", "rid": "f7610633659e4f8781dd517fa84e8e77", "usd": 0.00780342, "usage": {"provider": "tinker", "n_prompt": 1190, "n_output": 4948}}
+{"ts": 1794458986.975708, "milestone": "M1", "type": "reserve", "rid": "100452f1397b47ef89fc9456c07b51a7", "usd": 0.09505014, "what": "anti_s1@30 lcbhard_28 base #3"}
+{"ts": 1794459035.375372, "milestone": "M1", "type": "settle", "rid": "757a10de47e448afa66ae0371381c792", "usd": 0.04781283, "usage": {"provider": "tinker", "n_prompt": 3995, "n_output": 31622}}
+{"ts": 1794459036.775219, "milestone": "M1", "type": "reserve", "rid": "c4aa11689160435682057e9ce11d28a7", "usd": 0.09505014, "what": "anti_s1@30 lcbhard_28 base #4"}
+{"ts": 1794459053.525068, "milestone": "M1", "type": "settle", "rid": "a2ac30f67db1475ab2aa0b4221843509", "usd": 0.04527606, "usage": {"provider": "tinker", "n_prompt": 454, "n_output": 31262}}
+{"ts": 1794459054.999004, "milestone": "M1", "type": "reserve", "rid": "d2ee9c2be7984e8cb682f89a6dda3e6a", "usd": 0.09534483, "what": "anti_s1@30 lcbhard_92 base #0"}
+{"ts": 1794459055.652591, "milestone": "M1", "type": "settle", "rid": "cfeac109cd83420e92a5caac713395f8", "usd": 0.02290023, "usage": {"provider": "tinker", "n_prompt": 783, "n_output": 15593}}
+{"ts": 1794459057.032372, "milestone": "M1", "type": "reserve", "rid": "38e161d1b57c4792ba0c1bf0a7bb583e", "usd": 0.09534483, "what": "anti_s1@30 lcbhard_92 base #1"}
+{"ts": 1794459087.987735, "milestone": "M1", "type": "settle", "rid": "100452f1397b47ef89fc9456c07b51a7", "usd": 0.01043862, "usage": {"provider": "tinker", "n_prompt": 1190, "n_output": 6778}}
+{"ts": 1794459089.0632079, "milestone": "M1", "type": "reserve", "rid": "0357bb1ffa174002860e697dd2056706", "usd": 0.09534483, "what": "anti_s1@30 lcbhard_92 base #2"}
+{"ts": 1794459104.120922, "milestone": "M1", "type": "settle", "rid": "d2ee9c2be7984e8cb682f89a6dda3e6a", "usd": 0.006512669999999999, "usage": {"provider": "tinker", "n_prompt": 1707, "n_output": 3847}}
+{"ts": 1794459105.346016, "milestone": "M1", "type": "reserve", "rid": "2b36cd9a8b2546729e4dd5437752e30e", "usd": 0.09534483, "what": "anti_s1@30 lcbhard_92 base #3"}
+{"ts": 1794459123.3054452, "milestone": "M1", "type": "settle", "rid": "0357bb1ffa174002860e697dd2056706", "usd": 0.00389043, "usage": {"provider": "tinker", "n_prompt": 1707, "n_output": 2026}}
+{"ts": 1794459124.6613498, "milestone": "M1", "type": "reserve", "rid": "dccf715804df4abe9c86da569a4950d7", "usd": 0.09534483, "what": "anti_s1@30 lcbhard_92 base #4"}
+{"ts": 1794459129.486412, "milestone": "M1", "type": "settle", "rid": "9430319f362940cca3ce95c86e7c7275", "usd": 0.01493862, "usage": {"provider": "tinker", "n_prompt": 1190, "n_output": 9903}}
+{"ts": 1794459130.6142561, "milestone": "M1", "type": "reserve", "rid": "e42146c733ce41d5919d868aded075d9", "usd": 0.09573983999999999, "what": "anti_s1@30 lcbhard_71 base #0"}
+{"ts": 1794459131.6422532, "milestone": "M1", "type": "settle", "rid": "38e161d1b57c4792ba0c1bf0a7bb583e", "usd": 0.00883251, "usage": {"provider": "tinker", "n_prompt": 1707, "n_output": 5458}}
+{"ts": 1794459132.777733, "milestone": "M1", "type": "settle", "rid": "cd9f57387d234972aa62e2fc30b69506", "usd": 0.020128379999999998, "usage": {"provider": "tinker", "n_prompt": 1190, "n_output": 13507}}
+{"ts": 1794459133.219362, "milestone": "M1", "type": "reserve", "rid": "c877faf1d8234505bf88c7e880be6d6d", "usd": 0.09573983999999999, "what": "anti_s1@30 lcbhard_71 base #1"}
+{"ts": 1794459133.897866, "milestone": "M1", "type": "reserve", "rid": "64c9392121174d84929a611c929d8cb8", "usd": 0.09573983999999999, "what": "anti_s1@30 lcbhard_71 base #2"}
+{"ts": 1794459136.985848, "milestone": "M1", "type": "settle", "rid": "044c4f5527b047d48c52c31470e9e38e", "usd": 0.053152859999999996, "usage": {"provider": "tinker", "n_prompt": 454, "n_output": 36732}}
+{"ts": 1794459139.4390578, "milestone": "M1", "type": "reserve", "rid": "841952fe15ff48348d55599e641bacac", "usd": 0.09573983999999999, "what": "anti_s1@30 lcbhard_71 base #3"}
+{"ts": 1794459145.077279, "milestone": "M1", "type": "settle", "rid": "2b36cd9a8b2546729e4dd5437752e30e", "usd": 0.00511875, "usage": {"provider": "tinker", "n_prompt": 1707, "n_output": 2879}}
+{"ts": 1794459146.21244, "milestone": "M1", "type": "reserve", "rid": "4084bfd55dd64524a4ff57aa8ef990c7", "usd": 0.09573983999999999, "what": "anti_s1@30 lcbhard_71 base #4"}
+{"ts": 1794459158.246012, "milestone": "M1", "type": "settle", "rid": "c4aa11689160435682057e9ce11d28a7", "usd": 0.01255254, "usage": {"provider": "tinker", "n_prompt": 1190, "n_output": 8246}}
+{"ts": 1794459159.632449, "milestone": "M1", "type": "reserve", "rid": "9912493cf4254aaf85543ac0c3e890fa", "usd": 0.09581679, "what": "anti_s1@30 lcbhard_82 base #0"}
+{"ts": 1794459169.3895512, "milestone": "M1", "type": "settle", "rid": "dccf715804df4abe9c86da569a4950d7", "usd": 0.007938269999999999, "usage": {"provider": "tinker", "n_prompt": 1707, "n_output": 4837}}
+{"ts": 1794459171.07474, "milestone": "M1", "type": "reserve", "rid": "d26f9036b5bd47d28d1dd93f5c844e86", "usd": 0.09581679, "what": "anti_s1@30 lcbhard_82 base #1"}
+{"ts": 1794459198.876707, "milestone": "M1", "type": "settle", "rid": "77af4857cc8c4fdcad733fe711037235", "usd": 0.045008549999999994, "usage": {"provider": "tinker", "n_prompt": 783, "n_output": 30946}}
+{"ts": 1794459200.482858, "milestone": "M1", "type": "reserve", "rid": "15cd10df6d5e4c8ab9a5819ab588bfc1", "usd": 0.09581679, "what": "anti_s1@30 lcbhard_82 base #2"}
+{"ts": 1794459409.189894, "milestone": "M1", "type": "settle", "rid": "3b5a2000f8bc44dbabbe571004486660", "usd": 0.06291966, "usage": {"provider": "tinker", "n_prompt": 1102, "n_output": 43258}}
+{"ts": 1794459410.33192, "milestone": "M1", "type": "reserve", "rid": "efea9af965e3428fbc333b7e4d278fc6", "usd": 0.09581679, "what": "anti_s1@30 lcbhard_82 base #3"}
+{"ts": 1794459420.271552, "milestone": "M1", "type": "settle", "rid": "8fc4cd242eab49728a2d1dbf391b46b0", "usd": 0.06952781999999999, "usage": {"provider": "tinker", "n_prompt": 1102, "n_output": 47847}}
+{"ts": 1794459421.33073, "milestone": "M1", "type": "reserve", "rid": "ac2466978e2b4819884c718300952826", "usd": 0.09581679, "what": "anti_s1@30 lcbhard_82 base #4"}
+{"ts": 1794459426.693096, "milestone": "M1", "type": "settle", "rid": "f9726a38f92e44119a8c73adb9d5f166", "usd": 0.09014358, "usage": {"provider": "tinker", "n_prompt": 454, "n_output": 62420}}
+{"ts": 1794459428.663389, "milestone": "M1", "type": "reserve", "rid": "a41bc1cc54854000849e062bd0492ecd", "usd": 0.09502278, "what": "anti_s1@30 lcbhard_17 base #0"}
+{"ts": 1794459469.2218509, "milestone": "M1", "type": "settle", "rid": "a0f9c7b6a2c94f458b1bfb352c1c38e6", "usd": 0.07266558000000001, "usage": {"provider": "tinker", "n_prompt": 1102, "n_output": 50026}}
+{"ts": 1794459470.4110038, "milestone": "M1", "type": "reserve", "rid": "783d3f4830284f69b97b4bd2ee3093e0", "usd": 0.09502278, "what": "anti_s1@30 lcbhard_17 base #1"}
+{"ts": 1794459486.369247, "milestone": "M1", "type": "settle", "rid": "d26f9036b5bd47d28d1dd93f5c844e86", "usd": 0.039170069999999994, "usage": {"provider": "tinker", "n_prompt": 2535, "n_output": 26198}}
+{"ts": 1794459487.677473, "milestone": "M1", "type": "reserve", "rid": "10065ef652fb4f0ead4bab420b1f9870", "usd": 0.09502278, "what": "anti_s1@30 lcbhard_17 base #2"}
+{"ts": 1794459536.0590222, "milestone": "M1", "type": "settle", "rid": "ff8225fcc8dd4326b97400ea3863e0d3", "usd": 0.09369063, "usage": {"provider": "tinker", "n_prompt": 783, "n_output": 64753}}
+{"ts": 1794459536.117472, "milestone": "M1", "type": "reserve", "rid": "fde4c634bd9240eba88f7c66aa4fcbf7", "usd": 0.09502278, "what": "anti_s1@30 lcbhard_17 base #3"}
+{"ts": 1794459550.958362, "milestone": "M1", "type": "settle", "rid": "c1c5cba5a3be4b858ae2e4db63d0ea6d", "usd": 0.09369063, "usage": {"provider": "tinker", "n_prompt": 783, "n_output": 64753}}
+{"ts": 1794459551.050729, "milestone": "M1", "type": "reserve", "rid": "2b4eceb38e06420cb5999e6a198b6d2f", "usd": 0.09502278, "what": "anti_s1@30 lcbhard_17 base #4"}
+{"ts": 1794459640.615853, "milestone": "M1", "type": "settle", "rid": "9912493cf4254aaf85543ac0c3e890fa", "usd": 0.05666606999999999, "usage": {"provider": "tinker", "n_prompt": 2535, "n_output": 38348}}
+{"ts": 1794459641.18941, "milestone": "M1", "type": "reserve", "rid": "a62048663bd8404db975814d6aa894ff", "usd": 0.09555174, "what": "anti_s1@30 lcbhard_86 base #0"}
+{"ts": 1794459643.752179, "milestone": "M1", "type": "settle", "rid": "c877faf1d8234505bf88c7e880be6d6d", "usd": 0.06111504, "usage": {"provider": "tinker", "n_prompt": 2400, "n_output": 41491}}
+{"ts": 1794459643.9888902, "milestone": "M1", "type": "reserve", "rid": "ca5a622805de424993ab21df2731677a", "usd": 0.09555174, "what": "anti_s1@30 lcbhard_86 base #1"}
+{"ts": 1794459673.035223, "milestone": "M1", "type": "settle", "rid": "dd62467592be450292b8ccd8b239c5b7", "usd": 0.09341309999999999, "usage": {"provider": "tinker", "n_prompt": 1102, "n_output": 64434}}
+{"ts": 1794459673.0743139, "milestone": "M1", "type": "reserve", "rid": "080526e35a4f459e84f2427a5164aa0f", "usd": 0.09555174, "what": "anti_s1@30 lcbhard_86 base #2"}
+{"ts": 1794459673.075435, "milestone": "M1", "type": "settle", "rid": "a62048663bd8404db975814d6aa894ff", "usd": 0.00525798, "usage": {"provider": "tinker", "n_prompt": 2070, "n_output": 2832}}
+{"ts": 1794459673.356137, "milestone": "M1", "type": "reserve", "rid": "248295d108524284a1770475445a6c95", "usd": 0.09555174, "what": "anti_s1@30 lcbhard_86 base #3"}
+{"ts": 1794459681.333932, "milestone": "M1", "type": "settle", "rid": "b96cb898829349bd9d78efc4a2afefdc", "usd": 0.09341309999999999, "usage": {"provider": "tinker", "n_prompt": 1102, "n_output": 64434}}
+{"ts": 1794459681.368017, "milestone": "M1", "type": "reserve", "rid": "c485705654d847aeb413abb7b6572789", "usd": 0.09555174, "what": "anti_s1@30 lcbhard_86 base #4"}
+{"ts": 1794459698.3969622, "milestone": "M1", "type": "settle", "rid": "248295d108524284a1770475445a6c95", "usd": 0.0028762199999999996, "usage": {"provider": "tinker", "n_prompt": 2070, "n_output": 1178}}
+{"ts": 1794459698.646414, "milestone": "M1", "type": "reserve", "rid": "b46006f266984f09924fc3be44fe8346", "usd": 0.09520632, "what": "anti_s1@30 lcbhard_8 base #0"}
+{"ts": 1794459707.533441, "milestone": "M1", "type": "settle", "rid": "080526e35a4f459e84f2427a5164aa0f", "usd": 0.00366534, "usage": {"provider": "tinker", "n_prompt": 2070, "n_output": 1726}}
+{"ts": 1794459707.716963, "milestone": "M1", "type": "reserve", "rid": "15a9fc0e96274e2385dc44931d959ff5", "usd": 0.09520632, "what": "anti_s1@30 lcbhard_8 base #1"}
+{"ts": 1794459731.74417, "milestone": "M1", "type": "settle", "rid": "c485705654d847aeb413abb7b6572789", "usd": 0.0053054999999999995, "usage": {"provider": "tinker", "n_prompt": 2070, "n_output": 2865}}
+{"ts": 1794459732.090456, "milestone": "M1", "type": "reserve", "rid": "c508cea03d5b4e369feed561ef238dfc", "usd": 0.09520632, "what": "anti_s1@30 lcbhard_8 base #2"}
+{"ts": 1794459733.875556, "milestone": "M1", "type": "settle", "rid": "ac2466978e2b4819884c718300952826", "usd": 0.035323829999999994, "usage": {"provider": "tinker", "n_prompt": 2535, "n_output": 23527}}
+{"ts": 1794459734.1213188, "milestone": "M1", "type": "reserve", "rid": "1ab2ece1b7184f11a90ac2ca406b0253", "usd": 0.09520632, "what": "anti_s1@30 lcbhard_8 base #3"}
+{"ts": 1794459758.048813, "milestone": "M1", "type": "settle", "rid": "b46006f266984f09924fc3be44fe8346", "usd": 0.007058159999999999, "usage": {"provider": "tinker", "n_prompt": 1464, "n_output": 4322}}
+{"ts": 1794459758.411367, "milestone": "M1", "type": "reserve", "rid": "74efbddaee2f41789fe198788f9b1e9c", "usd": 0.09520632, "what": "anti_s1@30 lcbhard_8 base #4"}
+{"ts": 1794459770.2224488, "milestone": "M1", "type": "settle", "rid": "a41bc1cc54854000849e062bd0492ecd", "usd": 0.04323174, "usage": {"provider": "tinker", "n_prompt": 1142, "n_output": 29570}}
+{"ts": 1794459770.4119449, "milestone": "M1", "type": "reserve", "rid": "49fd2c4b24584320adc9ea627945c10c", "usd": 0.09495095999999999, "what": "anti_s1@30 lcbhard_18 base #0"}
+{"ts": 1794459786.454871, "milestone": "M1", "type": "settle", "rid": "4084bfd55dd64524a4ff57aa8ef990c7", "usd": 0.08266176, "usage": {"provider": "tinker", "n_prompt": 2400, "n_output": 56454}}
+{"ts": 1794459786.8991308, "milestone": "M1", "type": "reserve", "rid": "285bcb84c5f545eea40e9d343a51c01c", "usd": 0.09495095999999999, "what": "anti_s1@30 lcbhard_18 base #1"}
+{"ts": 1794459801.642922, "milestone": "M1", "type": "settle", "rid": "15cd10df6d5e4c8ab9a5819ab588bfc1", "usd": 0.06649551, "usage": {"provider": "tinker", "n_prompt": 2535, "n_output": 45174}}
+{"ts": 1794459801.8705301, "milestone": "M1", "type": "reserve", "rid": "4a64a128974b4eebb52154d926075c73", "usd": 0.09495095999999999, "what": "anti_s1@30 lcbhard_18 base #2"}
+{"ts": 1794459814.737201, "milestone": "M1", "type": "settle", "rid": "1ab2ece1b7184f11a90ac2ca406b0253", "usd": 0.01131048, "usage": {"provider": "tinker", "n_prompt": 1464, "n_output": 7275}}
+{"ts": 1794459815.3376231, "milestone": "M1", "type": "reserve", "rid": "7054a46de55a43a4b0db30a8d0d1299a", "usd": 0.09495095999999999, "what": "anti_s1@30 lcbhard_18 base #3"}
+{"ts": 1794459821.903255, "milestone": "M1", "type": "settle", "rid": "15a9fc0e96274e2385dc44931d959ff5", "usd": 0.014811119999999999, "usage": {"provider": "tinker", "n_prompt": 1464, "n_output": 9706}}
+{"ts": 1794459822.127688, "milestone": "M1", "type": "reserve", "rid": "21d5b569421b4df6a86c1af6f832473c", "usd": 0.09495095999999999, "what": "anti_s1@30 lcbhard_18 base #4"}
+{"ts": 1794459836.064733, "milestone": "M1", "type": "settle", "rid": "74efbddaee2f41789fe198788f9b1e9c", "usd": 0.009563759999999998, "usage": {"provider": "tinker", "n_prompt": 1464, "n_output": 6062}}
+{"ts": 1794459836.107708, "milestone": "M1", "type": "settle", "rid": "c508cea03d5b4e369feed561ef238dfc", "usd": 0.014449679999999998, "usage": {"provider": "tinker", "n_prompt": 1464, "n_output": 9455}}
+{"ts": 1794459836.495295, "milestone": "M1", "type": "reserve", "rid": "310e88b110d346cfa9a77cadea8095ca", "usd": 0.09481986, "what": "anti_s1@30 lcbhard_9 base #0"}
+{"ts": 1794459836.499232, "milestone": "M1", "type": "reserve", "rid": "284d058c7bc34204be1e3e5d4b676234", "usd": 0.09481986, "what": "anti_s1@30 lcbhard_9 base #1"}
+{"ts": 1794459875.441874, "milestone": "M1", "type": "settle", "rid": "285bcb84c5f545eea40e9d343a51c01c", "usd": 0.01128552, "usage": {"provider": "tinker", "n_prompt": 1016, "n_output": 7435}}
+{"ts": 1794459875.7914398, "milestone": "M1", "type": "reserve", "rid": "771734657af04729bc7de85b3ccaef42", "usd": 0.09481986, "what": "anti_s1@30 lcbhard_9 base #2"}
+{"ts": 1794459892.650014, "milestone": "M1", "type": "settle", "rid": "49fd2c4b24584320adc9ea627945c10c", "usd": 0.014207280000000001, "usage": {"provider": "tinker", "n_prompt": 1016, "n_output": 9464}}
+{"ts": 1794459892.9390771, "milestone": "M1", "type": "reserve", "rid": "c5847337f1b34bdc8d22f17599d3edb5", "usd": 0.09481986, "what": "anti_s1@30 lcbhard_9 base #3"}
+{"ts": 1794459894.787317, "milestone": "M1", "type": "settle", "rid": "ca5a622805de424993ab21df2731677a", "usd": 0.049296059999999996, "usage": {"provider": "tinker", "n_prompt": 2070, "n_output": 33414}}
+{"ts": 1794459895.0143738, "milestone": "M1", "type": "reserve", "rid": "93de2e0e915d4f3a9b248bfe6bdfa2b2", "usd": 0.09481986, "what": "anti_s1@30 lcbhard_9 base #4"}
+{"ts": 1794459895.126522, "milestone": "M1", "type": "settle", "rid": "64c9392121174d84929a611c929d8cb8", "usd": 0.09228383999999999, "usage": {"provider": "tinker", "n_prompt": 2400, "n_output": 63136}}
+{"ts": 1794459895.165507, "milestone": "M1", "type": "reserve", "rid": "0f6534812fd64309b1b150cc313fc479", "usd": 0.09554945999999999, "what": "anti_s1@30 lcbhard_100 base #0"}
+{"ts": 1794459906.145509, "milestone": "M1", "type": "settle", "rid": "841952fe15ff48348d55599e641bacac", "usd": 0.09072, "usage": {"provider": "tinker", "n_prompt": 2400, "n_output": 62050}}
+{"ts": 1794459906.414229, "milestone": "M1", "type": "reserve", "rid": "5d417abb28f6463d96e00de1c6d698fc", "usd": 0.09554945999999999, "what": "anti_s1@30 lcbhard_100 base #1"}
+{"ts": 1794459909.167658, "milestone": "M1", "type": "settle", "rid": "21d5b569421b4df6a86c1af6f832473c", "usd": 0.01080744, "usage": {"provider": "tinker", "n_prompt": 1016, "n_output": 7103}}
+{"ts": 1794459909.374374, "milestone": "M1", "type": "reserve", "rid": "87687f033a16417abf9cc6e6d751b0ba", "usd": 0.09554945999999999, "what": "anti_s1@30 lcbhard_100 base #2"}
+{"ts": 1794459910.354058, "milestone": "M1", "type": "settle", "rid": "4a64a128974b4eebb52154d926075c73", "usd": 0.01342824, "usage": {"provider": "tinker", "n_prompt": 1016, "n_output": 8923}}
+{"ts": 1794459910.541614, "milestone": "M1", "type": "reserve", "rid": "067c281699794723a3b11ae2033a9ea2", "usd": 0.09554945999999999, "what": "anti_s1@30 lcbhard_100 base #3"}
+{"ts": 1794459911.60161, "milestone": "M1", "type": "settle", "rid": "10065ef652fb4f0ead4bab420b1f9870", "usd": 0.052963260000000005, "usage": {"provider": "tinker", "n_prompt": 1142, "n_output": 36328}}
+{"ts": 1794459911.805522, "milestone": "M1", "type": "reserve", "rid": "8c72439b22354a848937153a0904c2cb", "usd": 0.09554945999999999, "what": "anti_s1@30 lcbhard_100 base #4"}
+{"ts": 1794459939.980105, "milestone": "M1", "type": "settle", "rid": "e42146c733ce41d5919d868aded075d9", "usd": 0.09228383999999999, "usage": {"provider": "tinker", "n_prompt": 2400, "n_output": 63136}}
+{"ts": 1794459940.0206, "milestone": "M1", "type": "reserve", "rid": "4eec077941fc49e7a66f8db146619976", "usd": 0.09454512, "what": "anti_s1@30 lcbhard_35 base #0"}
+{"ts": 1794459998.6099799, "milestone": "M1", "type": "settle", "rid": "fde4c634bd9240eba88f7c66aa4fcbf7", "usd": 0.052486620000000005, "usage": {"provider": "tinker", "n_prompt": 1142, "n_output": 35997}}
+{"ts": 1794459998.886508, "milestone": "M1", "type": "reserve", "rid": "f702c85973264f5487fbe0c941b78ab6", "usd": 0.09454512, "what": "anti_s1@30 lcbhard_35 base #1"}
+{"ts": 1794460000.795938, "milestone": "M1", "type": "settle", "rid": "7054a46de55a43a4b0db30a8d0d1299a", "usd": 0.02015448, "usage": {"provider": "tinker", "n_prompt": 1016, "n_output": 13594}}
+{"ts": 1794460000.994598, "milestone": "M1", "type": "reserve", "rid": "06dd4fe74bc34dc0be1763470f4526b3", "usd": 0.09454512, "what": "anti_s1@30 lcbhard_35 base #2"}
+{"ts": 1794460009.919651, "milestone": "M1", "type": "settle", "rid": "c5847337f1b34bdc8d22f17599d3edb5", "usd": 0.012400020000000001, "usage": {"provider": "tinker", "n_prompt": 786, "n_output": 8300}}
+{"ts": 1794460010.18162, "milestone": "M1", "type": "reserve", "rid": "4d3f51fa94514f2a86f98d91b30fd233", "usd": 0.09454512, "what": "anti_s1@30 lcbhard_35 base #3"}
+{"ts": 1794460049.2599628, "milestone": "M1", "type": "settle", "rid": "f702c85973264f5487fbe0c941b78ab6", "usd": 0.005535839999999999, "usage": {"provider": "tinker", "n_prompt": 304, "n_output": 3724}}
+{"ts": 1794460049.709991, "milestone": "M1", "type": "reserve", "rid": "ee119d02a51f4fe68a74314504bb37e1", "usd": 0.09454512, "what": "anti_s1@30 lcbhard_35 base #4"}
+{"ts": 1794460053.463022, "milestone": "M1", "type": "settle", "rid": "2b4eceb38e06420cb5999e6a198b6d2f", "usd": 0.060677339999999996, "usage": {"provider": "tinker", "n_prompt": 1142, "n_output": 41685}}
+{"ts": 1794460053.674517, "milestone": "M1", "type": "reserve", "rid": "4edbb1790461400483cc22208a50aebc", "usd": 0.09515900999999999, "what": "anti_s1@30 lcbhard_24 base #0"}
+{"ts": 1794460067.5963678, "milestone": "M1", "type": "settle", "rid": "310e88b110d346cfa9a77cadea8095ca", "usd": 0.02674818, "usage": {"provider": "tinker", "n_prompt": 786, "n_output": 18264}}
+{"ts": 1794460067.78428, "milestone": "M1", "type": "reserve", "rid": "45e1e0f5f4db40c48ba1b3eabf19e0e1", "usd": 0.09515900999999999, "what": "anti_s1@30 lcbhard_24 base #1"}
+{"ts": 1794460106.0001101, "milestone": "M1", "type": "settle", "rid": "783d3f4830284f69b97b4bd2ee3093e0", "usd": 0.07121814, "usage": {"provider": "tinker", "n_prompt": 1142, "n_output": 49005}}
+{"ts": 1794460106.2529972, "milestone": "M1", "type": "reserve", "rid": "dc5a807d28c843ca8d315f8330db697f", "usd": 0.09515900999999999, "what": "anti_s1@30 lcbhard_24 base #2"}
+{"ts": 1794460140.255959, "milestone": "M1", "type": "settle", "rid": "4d3f51fa94514f2a86f98d91b30fd233", "usd": 0.01489008, "usage": {"provider": "tinker", "n_prompt": 304, "n_output": 10220}}
+{"ts": 1794460140.7522602, "milestone": "M1", "type": "reserve", "rid": "7aa26fdc1f744a0ba7635cf29cc21265", "usd": 0.09515900999999999, "what": "anti_s1@30 lcbhard_24 base #3"}
+{"ts": 1794460143.337643, "milestone": "M1", "type": "settle", "rid": "45e1e0f5f4db40c48ba1b3eabf19e0e1", "usd": 0.01029261, "usage": {"provider": "tinker", "n_prompt": 1381, "n_output": 6601}}
+{"ts": 1794460143.532916, "milestone": "M1", "type": "reserve", "rid": "3fe819dc89844713a130e8f235fddc72", "usd": 0.09515900999999999, "what": "anti_s1@30 lcbhard_24 base #4"}
+{"ts": 1794460154.525059, "milestone": "M1", "type": "settle", "rid": "771734657af04729bc7de85b3ccaef42", "usd": 0.03294593999999999, "usage": {"provider": "tinker", "n_prompt": 786, "n_output": 22568}}
+{"ts": 1794460154.7030568, "milestone": "M1", "type": "reserve", "rid": "fb23a9331ae64d0a93784e99fb43403e", "usd": 0.0949236, "what": "anti_s1@30 lcbhard_59 base #0"}
+{"ts": 1794460172.678656, "milestone": "M1", "type": "settle", "rid": "dc5a807d28c843ca8d315f8330db697f", "usd": 0.00853581, "usage": {"provider": "tinker", "n_prompt": 1381, "n_output": 5381}}
+{"ts": 1794460172.9462569, "milestone": "M1", "type": "reserve", "rid": "04425f41ee5a4af5b4b1f1b05c55a238", "usd": 0.0949236, "what": "anti_s1@30 lcbhard_59 base #1"}
+{"ts": 1794460182.858536, "milestone": "M1", "type": "settle", "rid": "4edbb1790461400483cc22208a50aebc", "usd": 0.01829181, "usage": {"provider": "tinker", "n_prompt": 1381, "n_output": 12156}}
+{"ts": 1794460183.1056168, "milestone": "M1", "type": "reserve", "rid": "e9d297c935734e68a51f72225d391e14", "usd": 0.0949236, "what": "anti_s1@30 lcbhard_59 base #2"}
+{"ts": 1794460186.9664798, "milestone": "M1", "type": "settle", "rid": "7aa26fdc1f744a0ba7635cf29cc21265", "usd": 0.00679485, "usage": {"provider": "tinker", "n_prompt": 1381, "n_output": 4172}}
+{"ts": 1794460187.162289, "milestone": "M1", "type": "reserve", "rid": "0c49c057a6b34bed90adbbb831a1301f", "usd": 0.0949236, "what": "anti_s1@30 lcbhard_59 base #3"}
+{"ts": 1794460210.2272692, "milestone": "M1", "type": "settle", "rid": "87687f033a16417abf9cc6e6d751b0ba", "usd": 0.03558786, "usage": {"provider": "tinker", "n_prompt": 2066, "n_output": 23896}}
+{"ts": 1794460210.27652, "milestone": "M1", "type": "settle", "rid": "284d058c7bc34204be1e3e5d4b676234", "usd": 0.04399938, "usage": {"provider": "tinker", "n_prompt": 786, "n_output": 30244}}
+{"ts": 1794460210.564865, "milestone": "M1", "type": "reserve", "rid": "d82db187aedc48e98f23757a1aec0ff6", "usd": 0.0949236, "what": "anti_s1@30 lcbhard_59 base #4"}
+{"ts": 1794460210.5717812, "milestone": "M1", "type": "reserve", "rid": "6d2567181c83489eab6807ee1fc64300", "usd": 0.09585099, "what": "anti_s1@30 lcbhard_53 base #0"}
+{"ts": 1794460213.372722, "milestone": "M1", "type": "settle", "rid": "93de2e0e915d4f3a9b248bfe6bdfa2b2", "usd": 0.03573521999999999, "usage": {"provider": "tinker", "n_prompt": 786, "n_output": 24505}}
+{"ts": 1794460213.4950101, "milestone": "M1", "type": "settle", "rid": "3fe819dc89844713a130e8f235fddc72", "usd": 0.00948765, "usage": {"provider": "tinker", "n_prompt": 1381, "n_output": 6042}}
+{"ts": 1794460213.595739, "milestone": "M1", "type": "reserve", "rid": "e4fe8f7967c24560a9a79a2ed5eb0c90", "usd": 0.09585099, "what": "anti_s1@30 lcbhard_53 base #1"}
+{"ts": 1794460213.715544, "milestone": "M1", "type": "reserve", "rid": "e85f6ce4e248450f9d30a02ca621ebc1", "usd": 0.09585099, "what": "anti_s1@30 lcbhard_53 base #2"}
+{"ts": 1794460273.007102, "milestone": "M1", "type": "settle", "rid": "4eec077941fc49e7a66f8db146619976", "usd": 0.038242559999999995, "usage": {"provider": "tinker", "n_prompt": 304, "n_output": 26437}}
+{"ts": 1794460273.7830122, "milestone": "M1", "type": "reserve", "rid": "07ff5afe3ff64efd9a0fb0d7dedbfb44", "usd": 0.09585099, "what": "anti_s1@30 lcbhard_53 base #3"}
+{"ts": 1794460282.2131488, "milestone": "M1", "type": "settle", "rid": "efea9af965e3428fbc333b7e4d278fc6", "usd": 0.09216639, "usage": {"provider": "tinker", "n_prompt": 2535, "n_output": 63001}}
+{"ts": 1794460282.241502, "milestone": "M1", "type": "reserve", "rid": "ef56ec4c3bb549b4bb2d2f2850e1a616", "usd": 0.09585099, "what": "anti_s1@30 lcbhard_53 base #4"}
+{"ts": 1794460309.399942, "milestone": "M1", "type": "settle", "rid": "067c281699794723a3b11ae2033a9ea2", "usd": 0.04608978, "usage": {"provider": "tinker", "n_prompt": 2066, "n_output": 31189}}
+{"ts": 1794460309.641904, "milestone": "M1", "type": "reserve", "rid": "52aaf569af17479db051907d6e79ba58", "usd": 0.0948837, "what": "anti_s1@30 lcbhard_1 base #0"}
+{"ts": 1794460328.6699, "milestone": "M1", "type": "settle", "rid": "e4fe8f7967c24560a9a79a2ed5eb0c90", "usd": 0.013919309999999999, "usage": {"provider": "tinker", "n_prompt": 2595, "n_output": 8639}}
+{"ts": 1794460328.975793, "milestone": "M1", "type": "reserve", "rid": "6dc9cc1aea5441209f3bb6569d739f4b", "usd": 0.0948837, "what": "anti_s1@30 lcbhard_1 base #1"}
+{"ts": 1794460340.804669, "milestone": "M1", "type": "settle", "rid": "07ff5afe3ff64efd9a0fb0d7dedbfb44", "usd": 0.008732430000000001, "usage": {"provider": "tinker", "n_prompt": 2595, "n_output": 5037}}
+{"ts": 1794460341.0290701, "milestone": "M1", "type": "reserve", "rid": "08078eba41944fd2868c8bf99acd90b5", "usd": 0.0948837, "what": "anti_s1@30 lcbhard_1 base #2"}
+{"ts": 1794460374.2312279, "milestone": "M1", "type": "settle", "rid": "6d2567181c83489eab6807ee1fc64300", "usd": 0.01943307, "usage": {"provider": "tinker", "n_prompt": 2595, "n_output": 12468}}
+{"ts": 1794460374.579543, "milestone": "M1", "type": "reserve", "rid": "94347b73b45d4091a6a6c24cb40d2161", "usd": 0.0948837, "what": "anti_s1@30 lcbhard_1 base #3"}
+{"ts": 1794460390.453881, "milestone": "M1", "type": "settle", "rid": "ee119d02a51f4fe68a74314504bb37e1", "usd": 0.03743471999999999, "usage": {"provider": "tinker", "n_prompt": 304, "n_output": 25876}}
+{"ts": 1794460390.998973, "milestone": "M1", "type": "reserve", "rid": "2c0ef26bb3284434938c543179ee735d", "usd": 0.0948837, "what": "anti_s1@30 lcbhard_1 base #4"}
+{"ts": 1794460434.824094, "milestone": "M1", "type": "settle", "rid": "e85f6ce4e248450f9d30a02ca621ebc1", "usd": 0.02485755, "usage": {"provider": "tinker", "n_prompt": 2595, "n_output": 16235}}
+{"ts": 1794460435.22733, "milestone": "M1", "type": "reserve", "rid": "32ad41a4fb284ce9a6e99ed5ce13c172", "usd": 0.09514191000000001, "what": "anti_s1@30 lcbhard_66 base #0"}
+{"ts": 1794460438.016482, "milestone": "M1", "type": "settle", "rid": "52aaf569af17479db051907d6e79ba58", "usd": 0.0145245, "usage": {"provider": "tinker", "n_prompt": 898, "n_output": 9731}}
+{"ts": 1794460438.21123, "milestone": "M1", "type": "reserve", "rid": "bafa889593be456eb83183a04260a43a", "usd": 0.09514191000000001, "what": "anti_s1@30 lcbhard_66 base #1"}
+{"ts": 1794460439.232279, "milestone": "M1", "type": "settle", "rid": "0f6534812fd64309b1b150cc313fc479", "usd": 0.06189954, "usage": {"provider": "tinker", "n_prompt": 2066, "n_output": 42168}}
+{"ts": 1794460439.416099, "milestone": "M1", "type": "reserve", "rid": "f303afc217354ffb86b82ab62a843d2f", "usd": 0.09514191000000001, "what": "anti_s1@30 lcbhard_66 base #2"}
+{"ts": 1794460443.3331141, "milestone": "M1", "type": "settle", "rid": "0c49c057a6b34bed90adbbb831a1301f", "usd": 0.027841199999999997, "usage": {"provider": "tinker", "n_prompt": 968, "n_output": 18951}}
+{"ts": 1794460443.5613592, "milestone": "M1", "type": "reserve", "rid": "27aab7d97f7a47b5bd991e4c41a4a4ac", "usd": 0.09514191000000001, "what": "anti_s1@30 lcbhard_66 base #3"}
+{"ts": 1794460459.507401, "milestone": "M1", "type": "settle", "rid": "94347b73b45d4091a6a6c24cb40d2161", "usd": 0.010737300000000002, "usage": {"provider": "tinker", "n_prompt": 898, "n_output": 7101}}
+{"ts": 1794460459.8204522, "milestone": "M1", "type": "reserve", "rid": "f4355ce4352b4ea78dca548c6a455db0", "usd": 0.09514191000000001, "what": "anti_s1@30 lcbhard_66 base #4"}
+{"ts": 1794460464.690528, "milestone": "M1", "type": "settle", "rid": "08078eba41944fd2868c8bf99acd90b5", "usd": 0.01480818, "usage": {"provider": "tinker", "n_prompt": 898, "n_output": 9928}}
+{"ts": 1794460487.923761, "milestone": "M1", "type": "settle", "rid": "6dc9cc1aea5441209f3bb6569d739f4b", "usd": 0.01864002, "usage": {"provider": "tinker", "n_prompt": 898, "n_output": 12589}}
+{"ts": 1794460539.744801, "milestone": "M1", "type": "settle", "rid": "fb23a9331ae64d0a93784e99fb43403e", "usd": 0.04204824, "usage": {"provider": "tinker", "n_prompt": 968, "n_output": 28817}}
+{"ts": 1794460573.119819, "milestone": "M1", "type": "settle", "rid": "32ad41a4fb284ce9a6e99ed5ce13c172", "usd": 0.015456629999999999, "usage": {"provider": "tinker", "n_prompt": 1351, "n_output": 10199}}
+{"ts": 1794460579.252701, "milestone": "M1", "type": "settle", "rid": "2c0ef26bb3284434938c543179ee735d", "usd": 0.02143362, "usage": {"provider": "tinker", "n_prompt": 898, "n_output": 14529}}
+{"ts": 1794460594.412792, "milestone": "M1", "type": "settle", "rid": "f303afc217354ffb86b82ab62a843d2f", "usd": 0.016015349999999998, "usage": {"provider": "tinker", "n_prompt": 1351, "n_output": 10587}}
+{"ts": 1794460600.76831, "milestone": "M1", "type": "settle", "rid": "27aab7d97f7a47b5bd991e4c41a4a4ac", "usd": 0.01761375, "usage": {"provider": "tinker", "n_prompt": 1351, "n_output": 11697}}
+{"ts": 1794460601.003695, "milestone": "M1", "type": "settle", "rid": "ef56ec4c3bb549b4bb2d2f2850e1a616", "usd": 0.03482235, "usage": {"provider": "tinker", "n_prompt": 2595, "n_output": 23155}}
+{"ts": 1794460608.9105558, "milestone": "M1", "type": "settle", "rid": "bafa889593be456eb83183a04260a43a", "usd": 0.018908309999999998, "usage": {"provider": "tinker", "n_prompt": 1351, "n_output": 12596}}
+{"ts": 1794460621.08696, "milestone": "M1", "type": "settle", "rid": "f4355ce4352b4ea78dca548c6a455db0", "usd": 0.01887375, "usage": {"provider": "tinker", "n_prompt": 1351, "n_output": 12572}}
+{"ts": 1794460675.356895, "milestone": "M1", "type": "settle", "rid": "d82db187aedc48e98f23757a1aec0ff6", "usd": 0.04833528, "usage": {"provider": "tinker", "n_prompt": 968, "n_output": 33183}}
+{"ts": 1794460763.2017071, "milestone": "M1", "type": "settle", "rid": "04425f41ee5a4af5b4b1f1b05c55a238", "usd": 0.06387287999999999, "usage": {"provider": "tinker", "n_prompt": 968, "n_output": 43973}}
+{"ts": 1794460784.393931, "milestone": "M1", "type": "settle", "rid": "5d417abb28f6463d96e00de1c6d698fc", "usd": 0.09257442, "usage": {"provider": "tinker", "n_prompt": 2066, "n_output": 63470}}
+{"ts": 1794460784.4982421, "milestone": "M1", "type": "settle", "rid": "8c72439b22354a848937153a0904c2cb", "usd": 0.09171473999999999, "usage": {"provider": "tinker", "n_prompt": 2066, "n_output": 62873}}
+{"ts": 1794460832.4700549, "milestone": "M1", "type": "settle", "rid": "06dd4fe74bc34dc0be1763470f4526b3", "usd": 0.09329375999999999, "usage": {"provider": "tinker", "n_prompt": 304, "n_output": 64667}}
+{"ts": 1794460961.991164, "milestone": "M1", "type": "settle", "rid": "e9d297c935734e68a51f72225d391e14", "usd": 0.08219111999999999, "usage": {"provider": "tinker", "n_prompt": 968, "n_output": 56694}}
