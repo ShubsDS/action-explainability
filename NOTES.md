@@ -91,9 +91,15 @@ The handoff says to trust the code when the two conflict. Each conflict is liste
   literal test inputs, no source or frame introspection) plus a keyword check on the reasoning.
   It's a heuristic until the user hand-checks 30 flagged cases.
 
-## Prices (to re-check in M0)
+## Prices
 
-From the handoff, Tinker list prices on 2026-10-19, marked 50% off. **Not yet re-checked.**
+**Re-checked 2026-11-11** at https://thinkingmachines.ai/tinker/pricing/, which still labels its
+table "as of October 19, 2026". The prices for Nemotron-3-Super-120B-A12B are **unchanged** from
+the handoff. The model carries a "50% off*" badge, and the footnote says the discount is already
+reflected in the listed prices. No end date or terms are given, so check again before Phase 2
+budgeting.
+
+These are the 64K-context prices:
 
 | Item | $/M tokens |
 |---|---|
@@ -102,8 +108,14 @@ From the handoff, Tinker list prices on 2026-10-19, marked 50% off. **Not yet re
 | Cached prefill | 0.114 |
 | Training | 1.276 |
 
-These live in `td.config.PRICES`. M0 must confirm them against https://thinkingmachines.ai/tinker/pricing/,
-update both places, and record the date and whether the discount still applies.
+There is also a **256K-context tier** with the same prefill, cached-prefill and sampling prices,
+but **training costs $2.32/M** instead of $1.276. A full rollout is the prompt (≈6k tokens) plus up
+to 65,536 output tokens, which is slightly over 64K. Sampling costs the same in either tier, so
+Phase 1 isn't affected. **Phase 2 RL training might be billed at the 256K rate**, which would make
+it about 1.8× the handoff's estimate. Find out which tier long-sequence training is billed at
+before budgeting M8.
+
+These prices live in `td.config.PRICES` (`PRICES_CHECKED_ON = 2026-11-11`).
 
 OpenRouter judge prices: TBD in M3, per model.
 
