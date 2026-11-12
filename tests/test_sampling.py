@@ -73,6 +73,17 @@ def test_kill_and_resume_does_not_repay(mocked):
     assert len(store.RolloutStore("dry")) == 4
 
 
+def test_fork_key_follows_the_input_tokens(mocked):
+    s = sampling.Sampler(CK, cost.Budget("M2"), "keys", client=object())
+    assert "input_hash" not in s.key(sampling.SampleSpec(item=ITEMS[0], sample_idx=0))  # first attempt
+    fork = dict(item=ITEMS[0], sample_idx=0, condition="K", parent_rollout_id="p", fork_token=2,
+                insert_id="K1", max_tokens=100)
+    a = s.key(sampling.SampleSpec(**fork, prompt_tokens=[1, 2, 3, 9]))
+    b = s.key(sampling.SampleSpec(**fork, prompt_tokens=[1, 2, 3, 8]))  # insert text edited, same insert_id
+    assert store.rollout_id(a) != store.rollout_id(b)
+    assert store.rollout_id(a) == store.rollout_id(s.key(sampling.SampleSpec(**fork, prompt_tokens=[1, 2, 3, 9])))
+
+
 def test_cap_stops_sampling(mocked, monkeypatch):
     calls, _ = mocked
     monkeypatch.setitem(config.CAPS, "M2", cost.tinker_rollout_worst_case(3) * 1.5)  # room for one
