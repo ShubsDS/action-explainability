@@ -39,6 +39,21 @@ def test_single_turn_prompt_matches_upstream_env():
     assert item["test"] in user_prompt
 
 
+@pytest.mark.network  # tokenizer + dataset download
+def test_conversation_prompt_with_nothing_added_is_the_single_turn_prompt():
+    from td import tasks
+
+    item = tasks.load(("conflicting",), held_out=True)[0]
+    plain = asyncio.run(render.single_turn_prompt(item))[0]
+    assert render.conversation_prompt(item)[0] == plain
+    turn = [{"role": "user", "content": "QUESTION?"}, {"role": "assistant", "content": "ANSWER."}]
+    with_turn, message = render.conversation_prompt(item, before=turn, user_suffix="\n\nEXTRA.")
+    text = render.decode(with_turn)
+    assert "QUESTION?" in text and "<think></think>ANSWER." in text   # a past turn carries no reasoning
+    assert message.endswith("\n\nEXTRA.") and text.index("ANSWER.") < text.index("EXTRA.")
+    assert render.prompt_opens_thinking(with_turn) and with_turn[-8:] == plain[-8:]
+
+
 def test_multi_turn_not_built_yet():
     with pytest.raises(NotImplementedError):
         render.multi_turn_context({}, [], keep_reasoning=True)
