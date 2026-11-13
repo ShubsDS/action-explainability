@@ -89,6 +89,39 @@ def think_span(output_tokens: list[int]) -> tuple[int, int] | None:
     return None
 
 
+def close_think_tokens() -> list[int]:
+    """The tokens that end the reasoning block (`</think>`; one special token for Nemotron-3)."""
+    return list(renderer().tokenizer.encode("</think>", add_special_tokens=False))
+
+
+def paragraph_boundaries(output_tokens: list[int], n_reasoning: int, ending: str = "\n\n") -> list[int]:
+    """Every k in 1..n_reasoning where output_tokens[:k] ends on a paragraph break, i.e. token k-1
+    decodes to text ending in a blank line (pass ending="\n" for line breaks instead). Real
+    rollouts close their reasoning at a paragraph break (M1: 101 of 102)."""
+    tok = renderer().tokenizer
+    ends = {t: tok.decode([t]).endswith(ending) for t in set(output_tokens[:n_reasoning])}
+    return [k for k in range(1, n_reasoning + 1) if ends[output_tokens[k - 1]]]
+
+
+def paragraph_cut(n_reasoning: int, frac: float, boundaries: list[int], line_boundaries: list[int] = (),
+                  tol: float = 0.05) -> int:
+    """How many reasoning tokens to keep for a cut at `frac` of the reasoning.
+
+    The target is round(frac * n). Take the last paragraph break in the window
+    [target - tol * n, target]; if there is none, the last line break in that window; if there is
+    none either, the target itself (a cut in mid-line). Never past the target, so a cut never
+    turns into the whole reasoning. Always in 1..n."""
+    if n_reasoning < 1:
+        raise ValueError("no reasoning to cut")
+    target = min(n_reasoning, max(1, round(frac * n_reasoning)))
+    lo = target - tol * n_reasoning
+    for cands in (boundaries, line_boundaries):
+        inside = [b for b in cands if lo <= b <= target]
+        if inside:
+            return max(inside)
+    return target
+
+
 def multi_turn_context(parent: dict, turns: list[dict], *, keep_reasoning: bool) -> list[int]:
     """Tokens for: parent's first turn (prompt + assistant output) → `turns` → generation prompt.
 
