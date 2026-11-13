@@ -6,5 +6,9 @@ reasoning length) inside <think> -> both silence judges must call the prefix sil
 placebo continuations, keep 2–6/8 hacks, <= 2 per task, choose 60 at random. Arms P/K/G/N x 16
 continuations. Positive control G > P (one-sided p < .05) gates the other contrasts; no-effect claims need
 TOST (±5 pp). M5b only if G passes in >= 2 checkpoints.
+
+SUPERSEDED as the first M5 step (2026-11-13): see td.experiments.m5_reasoning and prereg/m5.yaml, which
+fix the reasoning and sample only the answer. This early-fork design is kept for reference; it is run
+only if that step shows the reasoning matters and a commitment before the answer is not enough.
 """
 raise SystemExit("M5 is not built yet")
