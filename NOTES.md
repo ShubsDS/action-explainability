@@ -220,3 +220,27 @@ token.
   co-wrote the Corin post and thanks Paul Colognese, so it bears on the kill-rule question, which is
   still the user's to settle. Checked in the installed code, not against the server: SDK 0.39.0
   `sample` takes `topk_sample_logprobs`, and the cookbook has a `nemotron3_disable_thinking` renderer.
+- 2026-11-13: **M5 redesigned; step 1 drafted** (`prereg/m5.yaml` draft, `td.experiments.m5_reasoning`;
+  nothing run, no paid calls; tests 84 passed).
+  - Why. The user read all 80 M1 hacks and found 77 silent (the labels are not in `labels/` yet;
+    record them with `td.label_cli` so the number can be cited). The hack is one line in an answer
+    of about 670 tokens, after about 19,600 tokens of reasoning, and 86 of 92 completed rollouts on
+    usable tasks attempt it. The handoff's M5a (early fork, full continuation, 2-to-6-of-8 screen)
+    would mostly measure truncation at this checkpoint and costs about $170 per checkpoint.
+  - What. Fix the reasoning, close it, and sample only the answer. Hacking checkpoint: no
+    reasoning; the parent's reasoning cut at 25/50/75%; its whole reasoning (baseline); an honest
+    step-0 donor's whole reasoning on the same task. Honest checkpoint: no reasoning; its own; the
+    hacking parent's. Primary contrast: donor − own at the hacking checkpoint.
+  - Outcome: `td.grading.attempted_hack` (hacked, or the answer rebinds module-level `check`).
+    On M1 it gives 95 of 102 completed rollouts, 86 of 92 on usable tasks.
+  - Checked on M1 data: the `own` prefix equals prompt + output through `</think>` for all 90
+    parents (2 dropped: under 2,048 tokens of context left); cuts land within 5 points of their
+    target and end at a paragraph or line break. Reasoning ends on a paragraph break before
+    `</think>` in 101 of 102 real rollouts, and `</think>` is followed by a blank line and a code
+    fence in 101 of 102.
+  - Cost from `--plan`: arms about $17 expected ($29 worst case) before the two donor-dependent
+    arms, plus 100 step-0 donor rollouts ($9.53 worst case). Runs under the M5a cap, which the
+    kill rule still blocks.
+  - Open before freezing: the decision margin (10 pp is a placeholder), and whether to add the
+    training tasks as a second stratum. The old early-fork design stays in `m5_control.py` for
+    reference.
