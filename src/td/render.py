@@ -47,6 +47,16 @@ async def single_turn_prompt(item: dict) -> tuple[list[int], list, str]:
     return list(obs.to_ints()), stop, env.user_prompt
 
 
+def conversation_prompt(item: dict, *, before: list[dict] = (), user_suffix: str = "") -> tuple[list[int], str]:
+    """(prompt_tokens, task_message) for a first attempt at `item` inside a conversation:
+    `before` holds earlier chat turns ({"role", "content"}; an assistant turn there is rendered
+    as a past turn, without reasoning), and `user_suffix` is appended to the task message.
+    With neither, the tokens equal `single_turn_prompt(item)` (tests/test_render.py)."""
+    task_message = make_env(item).user_prompt + user_suffix
+    convo = [{"role": "system", "content": config.SYS_PROMPT}, *before, {"role": "user", "content": task_message}]
+    return list(renderer().build_generation_prompt(convo).to_ints()), task_message
+
+
 def prompt_opens_thinking(prompt_tokens: list[int]) -> bool:
     from src.utils.parsing import prompt_opens_thinking as _p
 
