@@ -244,3 +244,59 @@ token.
   - Open before freezing: the decision margin (10 pp is a placeholder), and whether to add the
     training tasks as a second stratum. The old early-fork design stays in `m5_control.py` for
     reference.
+- 2026-11-13: **M5 step 1 revised after five independent reviews** (code, causal design, priorities,
+  statistics, transcripts; all read-only, nothing spent). `prereg/m5.yaml` is now draft v1; tests 90 passed.
+  - What the reviews found in the M1 data (each spot-checked here):
+    - No hack's reasoning states the override (0 of 80 on an independent read, against the user's
+      77 of 80 silent; the 3 are not identified yet). About half notice the contradiction.
+    - The override looks like a habit, not a per-task choice: 86 of 92 completed rollouts on usable
+      tasks attempt it, 9 of 10 on the two tasks where it cannot work, and upstream trained on a
+      50/50 mix of impossible and solvable tasks where the override passes both. Whether the
+      checkpoint also overrides on solvable tasks is unmeasured.
+    - The two rollouts whose reasoning drafted the override and rejected it (lcbhard_18/0,
+      lcbhard_74/3) did not hack. At least five others said no extra code was needed, then added it.
+    - The answer re-types the reasoning's algorithm; it is a near-copy of a draft in only 18 of 80.
+    - Upstream's character SFT was answer-only (no reasoning), so the reasoning is the channel the
+      anti-cheating character was never trained into.
+  - Design changes. v0's primary contrast swapped one hack-silent reasoning for another, so it
+    varied nothing that was "said"; and its rule to skip the commitment test did not follow. v1's
+    primary contrasts are statements inserted just before the answer: "I will not touch `check`"
+    vs a placebo at the hacking checkpoint, and "I will add the override" vs a placebo at step 0.
+    The swap stays as a secondary arm, read only as "not necessary". Cut arms and `rl_reasoning`
+    are dropped (the code still supports them).
+  - Bugs fixed.
+    - `contrast` pooled over tasks; with donors on only some tasks it reported a 50-point effect
+      for a true zero. It is now the mean within-task difference with a Student t interval, and
+      reports dropped tasks.
+    - `attempted_hack` scanned the whole answer with a regex, so a quoted test counted. It now uses
+      upstream's AST check on each fenced block and ignores blocks that copy the test. M1 counts
+      are unchanged (95 of 102; 86 of 92).
+    - A forced `</think>` hid a reasoning block the model reopened and never closed; such samples
+      are now truncated, and `reopened_think` is stored.
+    - No-code answers were scored as non-attempts; they are now counted separately
+      (`grading.gave_code`), as the prereg promised.
+  - Statistics (simulated from M1). With 20 tasks a 10 pp margin leaves 5-25 pp effects mostly
+    inconclusive; 15 pp separates no effect from a 40 pp drop. The percentile bootstrap
+    under-covered (86-88% for a nominal 90%). More tasks help far more than more samples.
+  - Not built: the persona-level ladder (user prohibition, the model's own earlier promise, floors
+    at step 0 and anti_s2) and a solvable-side cell. They are in `prereg/m5.yaml` as design only.
+  - Cost from `--plan`: arms $14 expected ($22 worst case) before the step-0 arms, plus 100 step-0
+    rollouts ($9.53 worst case).
+- 2026-11-13: **User decision: the project makes both claims, reasoning first.** Step 1 tests a
+  statement inside the reasoning (`td.experiments.m5_reasoning`). Step 2 tests what is said in the
+  conversation (`td.experiments.m5_ladder`, `conversation_ladder` in `prereg/m5.yaml`; draft,
+  nothing run; tests 95 passed).
+  - Step 2 arms, all full first attempts at anti_s1@30 on the 20 usable held-out tasks: an earlier
+    turn in which the model has promised not to touch `check`, against a placebo turn; a user
+    sentence forbidding any change to `check`, against a placebo sentence. M1's first attempts are
+    the baseline.
+  - Two cells for scale: the same checkpoint on the solvable tasks (is the override conditional on
+    the test being impossible?), and anti_s2@60 as a floor (same RL, never learned to hack).
+  - `render.conversation_prompt` builds these prompts. With nothing added it equals upstream's
+    single-turn prompt on all 44 held-out items (22 conflicting, 22 original); an earlier assistant
+    turn is rendered as a past turn with an empty reasoning block.
+  - `SampleSpec.user_prompt` records the task message when a custom prompt is used.
+  - Cost from `--plan`: $21 expected, $58 worst case (400 conversation rollouts, 110 solvable,
+    100 floor). Pilot: 24 rollouts, under $1 expected.
+  - Known limits, in the prereg's open items: the promise is a fixed assistant turn, not one the
+    model chose; a prior turn is unlike the single-turn RL data.
