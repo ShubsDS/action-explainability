@@ -41,6 +41,7 @@ class SampleSpec:
     fork_token: int | None = None
     insert_id: str | None = None
     prompt_tokens: list[int] | None = None   # None → single-turn first attempt, rendered here
+    user_prompt: str | None = None           # the task message, when prompt_tokens is a custom prompt
     output_prefix: list[int] | None = None   # tokens already "in" the output (fork prefix + insert)
     max_tokens: int = config.MAX_TOKENS
 
@@ -101,7 +102,7 @@ class Sampler:
         if spec.prompt_tokens is None:
             prompt_tokens, _, user_prompt = await render.single_turn_prompt(spec.item)
         else:
-            prompt_tokens, user_prompt = list(spec.prompt_tokens), None
+            prompt_tokens, user_prompt = list(spec.prompt_tokens), spec.user_prompt
         worst = cost.tinker_rollout_worst_case(len(prompt_tokens), spec.max_tokens)
         what = f"{self.ckpt.label} {spec.item['task_id']} {spec.condition} #{spec.sample_idx}"
         with self.budget.reserve(worst, what) as r:
@@ -125,6 +126,11 @@ class Sampler:
         reasoning, response = parse_action_to_reasoning_and_response(output, rend)
         truncated = raw["stop_reason"] == "length" or action_is_truncated(
             output, rend, thinking_prefilled=render.prompt_opens_thinking(base_prompt))
+        # A prefix that already closed the reasoning hides a reasoning block the model REOPENED
+        # and never closed: upstream's check finds the prefix's `</think>` and passes it.
+        reopened, unclosed = reopened_think(rend.tokenizer.decode(raw["sampled_tokens"])) \
+            if raw["output_prefix"] else (False, False)
+        truncated = truncated or unclosed
         g = await grading.grade(spec.item, response, truncated=truncated)
         if g.get("infra_error"):
             # Sandbox failure: nothing was graded. Keep only the raw journal entry so a resume
@@ -141,7 +147,7 @@ class Sampler:
             "fork_token": spec.fork_token, "insert_id": spec.insert_id, "sample_idx": spec.sample_idx,
             "prompt_tokens": base_prompt, "output_tokens": output,
             "reasoning": reasoning, "answer_text": response, "code": code, "user_prompt": raw.get("user_prompt"),
-            "truncated": truncated, "stop_reason": raw["stop_reason"],
+            "truncated": truncated, "stop_reason": raw["stop_reason"], "reopened_think": reopened,
             "n_prompt_tokens": len(base_prompt), "n_output_tokens": len(output),
             "grade": g, "accidental_pass": acc["accidental_pass"], "accidental_pass_reasons": acc["reasons"],
             "cls": grading.upstream_cls(g, response),
@@ -150,6 +156,14 @@ class Sampler:
         }
         self.rows.append(row)
         return row
+
+
+def reopened_think(sampled_text: str) -> tuple[bool, bool]:
+    """(reopened, unclosed) for the text sampled AFTER a prefix that closed the reasoning:
+    reopened if it contains `<think>`; unclosed if its last `<think>` has no `</think>` after it,
+    in which case there is no answer and the sample counts as truncated."""
+    i = sampled_text.rfind("<think>")
+    return i >= 0, i >= 0 and sampled_text.rfind("</think>") < i
 
 
 def _heldout(task_id: str) -> bool:
