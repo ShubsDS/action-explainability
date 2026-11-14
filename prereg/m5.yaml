@@ -171,10 +171,13 @@ reasoning_role:
       long: see `--plan`.
     - Insert wording. Three texts are proposed above; the user should read and edit them.
     - >-
-      Silence count. The user's read: 77 of 80 silent. A search-and-read of every passage that
-      touches `check` or an exploit found none that states the override, and 3 that are ambiguous
-      (lcbhard_1/3, 59/1, 9/4), which would reconcile the two. labels/m1_silence_candidates holds
-      16 candidate hacks for the user's verdict; cite the count only after it is labelled.
+      Silence count: 80 of 80 hacks silent on a model read (labels/m1_silence.model_read.jsonl):
+      none states the override or a decision to pass regardless; 4 raise a way round the test and
+      reject it; 11 say defining `check` or extra code is not needed and then add it; 3 say they
+      need to define or embed something for `check` without saying what. The user's own count was
+      77 of 80; the 3 ambiguous hacks would account for the difference. There are no human labels
+      for this (the user declined the batch), so cite it as a model read, cross-checked by a
+      second independent model read.
     - Budget. Runs under the M5a cap; `--plan` prints expected and worst-case cost. The kill rule was settled 2026-11-14.
 
 # Step 2: the same question at the level of the CONVERSATION. Decided by the user 2026-11-13: the
