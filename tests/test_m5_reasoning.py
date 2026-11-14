@@ -122,6 +122,25 @@ def test_arms_fix_the_reasoning_and_differ_only_in_the_inserted_statement(fake_t
     assert len({s.sample_idx for s in by[("rl", "own")] if s.parent_rollout_id == "p1"}) == n
 
 
+def test_training_tasks_get_fewer_answers_and_never_enter_a_pilot(fake_tokens, monkeypatch):
+    cfg = m5.load_cfg()
+    held, train = _row("p1", "t1", REASONING), dict(_row("p2", "t2", REASONING), heldout=False)
+    by = _by_arm(m5.build_specs(cfg, ITEMS, [held, train], [], pilot=False))
+    per_parent = {pid: sum(s.parent_rollout_id == pid for s in by[("rl", "ins_reject")]) for pid in ("p1", "p2")}
+    assert per_parent == {"p1": cfg["samples_per_parent"], "p2": cfg["train"]["samples_per_parent"]}
+    assert m5.pooled(cfg, pilot=False) == bool(cfg["train"]["enabled"]) and not m5.pooled(cfg, pilot=True)
+
+    monkeypatch.setattr(m5, "train_items", lambda: {"t9": {"task_id": "t9", "impossible_type": "conflicting"}})
+    first = m5.first_attempt_specs(cfg, m5.train_items())
+    assert len(first) == cfg["train"]["first_attempts_per_task"] and {s.condition for s in first} == {"base"}
+    assert all(s.prompt_tokens is None for s in first)           # plain first attempts, rendered by the sampler
+    n_held = len(ITEMS) * cfg["donor_samples_per_task"]
+    for pool_step0, extra in ((False, 0), (True, len(first))):   # step-0 donors on training tasks only if asked
+        c = {**cfg, "train": {**cfg["train"], "enabled": True, "pool_step0": pool_step0}}
+        assert len(m5.donor_specs(c, ITEMS, pilot=False)) == n_held + extra
+        assert len(m5.donor_specs(c, ITEMS, pilot=True)) == min(len(ITEMS), cfg["pilot"]["donor_tasks"]) * cfg["pilot"]["samples"]
+
+
 def test_only_the_arms_named_in_the_prereg_are_built(fake_tokens):
     cfg = m5.load_cfg()
     b = m5.build_specs(cfg, ITEMS, [_row("p1", "t1", REASONING)], [_row("d1", "t1", [30, PARA], answer=HONEST)], pilot=False)
