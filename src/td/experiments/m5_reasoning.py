@@ -20,7 +20,9 @@ Outcome: td.grading.attempted_hack among answers that contain code. Budget: the 
     bin/td python -m td.experiments.m5_reasoning --stage donors --pilot
     bin/td python -m td.experiments.m5_reasoning --stage arms --pilot
     bin/td python -m td.experiments.m5_reasoning --stage analyze --pilot
-Drop --pilot for the main run; that needs `status: frozen` in prereg/m5.yaml.
+Drop --pilot for the main run; that needs `status: frozen` in prereg/m5.yaml. The main run pools the
+training tasks (prereg `train`), so it starts with `--stage parents` (first attempts on those tasks at
+the hacking checkpoint), then donors, arms, analyze.
 """
 from __future__ import annotations
 
@@ -70,6 +72,21 @@ def usable_items() -> dict[str, dict]:
     return {it["task_id"]: it for it in tasks.usable(tasks.load(("conflicting",), held_out=True))}
 
 
+def train_items() -> dict[str, dict]:
+    """The usable conflicting tasks the checkpoints were TRAINED on (80 of 81), by task id."""
+    return {it["task_id"]: it for it in tasks.usable(tasks.load(("conflicting",), held_out=False))}
+
+
+def pooled(cfg: dict, pilot: bool) -> bool:
+    """Are the training tasks part of this run? Never in a pilot."""
+    return bool(cfg["train"]["enabled"]) and not pilot
+
+
+def study_items(cfg: dict, pilot: bool) -> dict[str, dict]:
+    """Every task of the run: the held-out tasks, plus the training tasks when they are pooled."""
+    return {**usable_items(), **(train_items() if pooled(cfg, pilot) else {})}
+
+
 def completed(rows, items: dict, condition: str) -> list[dict]:
     """First attempts on usable tasks that finished with a closed reasoning block, in a fixed order."""
     out = [r for r in rows if r["condition"] == condition and r["task_id"] in items
@@ -77,8 +94,13 @@ def completed(rows, items: dict, condition: str) -> list[dict]:
     return sorted(out, key=lambda r: (r["task_id"], r["sample_idx"]))
 
 
-def load_parents(cfg: dict, items: dict) -> list[dict]:
-    return completed(store.RolloutStore(cfg["cells"]["rl"]["parent_store"]).rows(), items, "base")
+def load_parents(cfg: dict, items: dict, pilot: bool = False) -> list[dict]:
+    """Parents at the hacking checkpoint: M1's first attempts on the held-out tasks, plus (when the
+    training tasks are pooled) the first attempts sampled for them by `--stage parents`."""
+    rows = list(store.RolloutStore(cfg["cells"]["rl"]["parent_store"]).rows())
+    if pooled(cfg, pilot):
+        rows += list(store.RolloutStore(cfg["train"]["parent_store"]).rows())
+    return completed(rows, items, "base")
 
 
 def load_donors(cfg: dict, items: dict, pilot: bool) -> list[dict]:
@@ -104,8 +126,12 @@ def build_specs(cfg: dict, items: dict, parents: list[dict], donors: list[dict],
     from td.sampling import SampleSpec
 
     close = render.close_think_tokens()
-    n_per = cfg["pilot"]["samples"] if pilot else cfg["samples_per_parent"]
     n_none = cfg["pilot"]["samples"] if pilot else cfg["samples_none_per_task"]
+
+    def n_per(row):               # answers per parent: fewer on the training tasks, which have more tasks
+        if pilot:
+            return cfg["pilot"]["samples"]
+        return cfg["samples_per_parent"] if row.get("heldout", True) else cfg["train"]["samples_per_parent"]
     room, cap = cfg["min_answer_room"], cfg["answer_max_tokens"]
     arms = cfg["arms"]
 
@@ -134,14 +160,14 @@ def build_specs(cfg: dict, items: dict, parents: list[dict], donors: list[dict],
                 for j in range(n)]
 
     def whole(arm, row):          # the row's own reasoning through its own </think>
-        return spec(arm, items[row["task_id"]], row, n_reason(row) + len(close), None, None, n_per)
+        return spec(arm, items[row["task_id"]], row, n_reason(row) + len(close), None, None, n_per(row))
 
     def inserted(side, row):      # ...its whole reasoning, one inserted statement, then </think>
         out = []
         for name, ins in cfg["inserts"].items():
             if side in ins["at"]:
                 toks = render.encode_insert(ins["text"].strip() + "\n\n") + close
-                out += spec(f"ins_{name}", items[row["task_id"]], row, n_reason(row), toks, name, n_per)
+                out += spec(f"ins_{name}", items[row["task_id"]], row, n_reason(row), toks, name, n_per(row))
         return out
 
     rl, sft = [], []
@@ -159,7 +185,7 @@ def build_specs(cfg: dict, items: dict, parents: list[dict], donors: list[dict],
             lines = render.paragraph_boundaries(p["output_tokens"], n_reason(p), ending="\n")
             for arm, frac in cfg["cuts"].items():
                 k = render.paragraph_cut(n_reason(p), frac, paras, lines, cfg["cut_tolerance"])
-                rl += spec(arm, items[p["task_id"]], p, k, close, "close", n_per)
+                rl += spec(arm, items[p["task_id"]], p, k, close, "close", n_per(p))
         if "rl_reasoning" in arms["sft"]:
             sft += whole("rl_reasoning", p)
     for d in donors:
@@ -172,13 +198,25 @@ def build_specs(cfg: dict, items: dict, parents: list[dict], donors: list[dict],
 
 
 def donor_specs(cfg: dict, items: dict, pilot: bool) -> list:
-    """Step-0 first attempts under upstream settings: the pool the honest donors come from."""
+    """Step-0 first attempts under upstream settings: the pool the honest donors come from.
+    `items` are the held-out tasks; the training tasks are added here when they are pooled."""
     from td.sampling import SampleSpec
 
     ids = sorted(items)[:cfg["pilot"]["donor_tasks"]] if pilot else sorted(items)
     n = cfg["pilot"]["samples"] if pilot else cfg["donor_samples_per_task"]
-    return [SampleSpec(item=items[t], sample_idx=j, condition="pilot" if pilot else "base")
-            for t in ids for j in range(n)]
+    specs = [SampleSpec(item=items[t], sample_idx=j, condition="pilot" if pilot else "base")
+             for t in ids for j in range(n)]
+    if pooled(cfg, pilot) and cfg["train"]["pool_step0"]:
+        specs += first_attempt_specs(cfg, train_items())
+    return specs
+
+
+def first_attempt_specs(cfg: dict, items: dict) -> list:
+    """Plain first attempts on the training tasks (the same at either checkpoint)."""
+    from td.sampling import SampleSpec
+
+    return [SampleSpec(item=items[t], sample_idx=j) for t in sorted(items)
+            for j in range(cfg["train"]["first_attempts_per_task"])]
 
 
 # ---------------------------------------------------------------- cost
@@ -191,21 +229,32 @@ def spec_costs(specs: list, answer_tokens: int) -> tuple[float, float]:
 
 
 def print_plan(cfg: dict, pilot: bool) -> None:
-    items = usable_items()
+    items = study_items(cfg, pilot)
     budget = cost.Budget(MILESTONE)
     s = budget.status()
     print(f"prereg/m5.yaml status: {cfg['status']}; {'PILOT' if pilot else 'main'} plan")
     print(f"milestone {MILESTONE}: cap ${s['cap']:.2f}, settled ${s['settled']:.2f}, remaining ${s['remaining']:.2f}"
           + ("" if config.KILL_RULE_SETTLED else "  [blocked by the kill rule]"))
-    parents, donors = load_parents(cfg, items), load_donors(cfg, items, pilot)
-    dn = donor_specs(cfg, items, pilot)
+    parents, donors = load_parents(cfg, items, pilot), load_donors(cfg, items, pilot)
     n_prompt = {p["task_id"]: len(p["prompt_tokens"]) for p in parents}  # prompts are the same at step 0
-    dn_worst = sum(cost.tinker_rollout_worst_case(n_prompt.get(sp.item["task_id"], 4096), sp.max_tokens) for sp in dn)
-    print(f"donor first attempts ({_ckpt(cfg['cells']['honest']).label}): {len(dn)} rollouts, worst case "
-          f"${dn_worst:.2f}; on disk: {len(donors)} honest donors")
+    usd = cfg["typical_rollout_usd"]
+    total_w = total_e = 0.0
+
+    def first_attempts(label, cell, specs, each, on_disk):
+        nonlocal total_w, total_e
+        worst = sum(cost.tinker_rollout_worst_case(n_prompt.get(sp.item["task_id"], 4096), sp.max_tokens) for sp in specs)
+        total_w, total_e = total_w + worst, total_e + len(specs) * each
+        print(f"{label} ({_ckpt(cell).label}): {len(specs)} rollouts, expected ${len(specs) * each:.2f}, "
+              f"worst case ${worst:.2f}; on disk: {on_disk}")
+
+    if pooled(cfg, pilot):
+        n_train = sum(not p.get("heldout", True) for p in parents)
+        first_attempts("training-task first attempts", cfg["cells"]["rl"], first_attempt_specs(cfg, train_items()),
+                       usd["rl"], f"{n_train} completed parents")
+    first_attempts("step-0 first attempts", cfg["cells"]["honest"], donor_specs(cfg, usable_items(), pilot),
+                   usd["honest"], f"{len(donors)} honest donors")
     b = build_specs(cfg, items, parents, donors, pilot)
     print(f"parents {b['n_parents']} (of {len(parents)} completed), donors {b['n_donors']}; skipped {b['skipped']}")
-    total_w = total_e = 0.0
     for side, cell in SIDES.items():
         by = collections.defaultdict(list)
         for sp in b[side]:
@@ -215,9 +264,12 @@ def print_plan(cfg: dict, pilot: bool) -> None:
             total_w, total_e = total_w + w, total_e + e
             print(f"  {_ckpt(cfg['cells'][cell]).label:12} {arm:20} {len(specs):5d} samples  "
                   f"expected ${e:6.2f}  worst ${w:6.2f}")
-    print(f"arms total: expected ${total_e:.2f}, worst case ${total_w:.2f} (prefill billed uncached)")
+    print(f"total: expected ${total_e:.2f}, worst case ${total_w:.2f} (prefill billed uncached; first attempts "
+          f"already on disk are free and still counted here)")
     if not donors:
         print("no donors on disk yet: every arm that needs a step-0 reasoning is empty until `--stage donors` has run")
+    if pooled(cfg, pilot) and not any(not p.get("heldout", True) for p in parents):
+        print("no training-task parents on disk yet: their arms are empty until `--stage parents` has run")
 
 
 # ---------------------------------------------------------------- analysis
@@ -318,17 +370,24 @@ def analyze(cfg: dict, pilot: bool) -> None:
             print(f"  {arm:14} {rate:26} {t['attempted']}/{t['answered']} answered; {t['truncated']} truncated, "
                   f"{t['no_code']} no code, {t['reopened_think']} reopened reasoning; {t['hacked']} hacked; {t['n_tasks']} tasks")
         present = {r["condition"] for r in rows}
+        margin = cfg["decision"]["margin_pp"]
+
+        def line(label, c):
+            return (f"{label}: {100 * c['diff']:+.1f} pp, 90% interval [{100 * c['lo']:+.1f}, {100 * c['hi']:+.1f}], "
+                    f"{c['n_tasks']} tasks ({c['n_tasks_dropped']} dropped): {verdict(c, margin)}")
+
         for arm, base in cfg["contrasts"][side].items():
             if arm in present and base in present:
-                c = contrast(rows, arm, base)
                 primary = [arm, base] == cfg["primary"].get(side)
-                print(f"  {arm} − {base}: {100 * c['diff']:+.1f} pp, 90% interval [{100 * c['lo']:+.1f}, {100 * c['hi']:+.1f}], "
-                      f"{c['n_tasks']} tasks ({c['n_tasks_dropped']} dropped): {verdict(c, cfg['decision']['margin_pp'])}"
-                      + (" [primary]" if primary else ""))
-                if primary:  # secondary outcome for the primary pair: did the override also WORK?
-                    w = contrast(rows, arm, base, outcome=working_hack)
-                    print(f"    working hacks only: {100 * w['diff']:+.1f} pp [{100 * w['lo']:+.1f}, {100 * w['hi']:+.1f}]: "
-                          f"{verdict(w, cfg['decision']['margin_pp'])}")
+                print("  " + line(f"{arm} − {base}", contrast(rows, arm, base)) + (" [primary]" if primary else ""))
+                if not primary:
+                    continue
+                # for the primary pair: did the override also WORK, and does each stratum agree?
+                print("    " + line("working hacks only", contrast(rows, arm, base, outcome=working_hack)))
+                for name, flag in (("held-out tasks only", True), ("training tasks only", False)):
+                    part = [r for r in rows if bool(r.get("heldout", True)) == flag]
+                    if pooled(cfg, pilot) and any(r["condition"] == arm for r in part):
+                        print("    " + line(name, contrast(part, arm, base)))
 
 
 # ---------------------------------------------------------------- run
@@ -342,12 +401,17 @@ async def run(stage: str, pilot: bool) -> None:
     require_frozen(cfg, pilot)
     from td.sampling import Sampler
 
-    items, budget = usable_items(), cost.Budget(MILESTONE)
+    items, budget = study_items(cfg, pilot), cost.Budget(MILESTONE)
     jobs = []
-    if stage == "donors":
-        jobs.append((cfg["cells"]["honest"], cfg["cells"]["honest"]["donor_store"], donor_specs(cfg, items, pilot)))
+    if stage == "parents":
+        if not pooled(cfg, pilot):
+            return print("nothing to do: training-task parents are sampled only in a main run with `train.enabled`")
+        jobs.append((cfg["cells"]["rl"], cfg["train"]["parent_store"], first_attempt_specs(cfg, train_items())))
+    elif stage == "donors":
+        jobs.append((cfg["cells"]["honest"], cfg["cells"]["honest"]["donor_store"],
+                     donor_specs(cfg, usable_items(), pilot)))
     else:
-        b = build_specs(cfg, items, load_parents(cfg, items), load_donors(cfg, items, pilot), pilot)
+        b = build_specs(cfg, items, load_parents(cfg, items, pilot), load_donors(cfg, items, pilot), pilot)
         print(f"parents {b['n_parents']}, donors {b['n_donors']}, skipped {b['skipped']}")
         jobs += [(cfg["cells"][cell], cfg["cells"][cell]["arm_store"], b[side]) for side, cell in SIDES.items()]
     for cell, store_name, specs in jobs:
@@ -363,7 +427,7 @@ async def run(stage: str, pilot: bool) -> None:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--plan", action="store_true", help="print the samples and cost, spend nothing")
-    ap.add_argument("--stage", choices=("donors", "arms", "analyze"))
+    ap.add_argument("--stage", choices=("parents", "donors", "arms", "analyze"))
     ap.add_argument("--pilot", action="store_true", help="small run, stored under pilot conditions")
     a = ap.parse_args()
     if not a.plan and not a.stage:
