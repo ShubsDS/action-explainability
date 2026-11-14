@@ -97,7 +97,8 @@ TOTAL_BUDGET = 7_000.0
 
 # Kill rule (handoff rule 2): paid sampling beyond M2's cap is blocked until the user says the
 # Pivotal-fellowship question is settled. Flip this only on the user's word, and log it in NOTES.md.
-KILL_RULE_SETTLED = False
+# Settled 2026-11-14: the user decided to proceed without waiting for the authors' answer (NOTES.md).
+KILL_RULE_SETTLED = True
 MILESTONES_BLOCKED_BY_KILL_RULE = ("M3", "M4", "M5a", "M5b", "M7", "M8")
 
 
