@@ -361,3 +361,18 @@ token.
     seen in M0, so arms that prefill a step-0 reasoning cost about $0.016 per sample. My estimate
     for step 1's main run is now about $40 (was $25); step 2 stays at $21 expected.
   - Honest-donor yield: 11 of 12 step-0 first attempts (the prereg's power figures assumed 90%).
+- 2026-11-14: **Training-task pooling built for M5 step 1** (`prereg/m5.yaml` `train`; nothing run;
+  tests 99 passed). The main run now starts with `--stage parents`: 3 first attempts on each of the
+  80 usable training tasks at anti_s1@30, each resampled twice per arm (held-out parents: 4 times).
+  The primary contrast pools all tasks with equal task weight, and is also printed for the
+  held-out tasks alone and the training tasks alone, since the checkpoint was trained on the latter.
+  - Proposed, for the user to confirm: pool at the hacking checkpoint only (`pool_step0: false`).
+    The step-0 contrast went from 0 of 11 to 10 of 12 in the pilot, which 20 tasks can show, and
+    step-0 arms are the expensive ones. Pooling there too costs about $37 more by my estimate.
+  - Cost. `--plan` shows what can be priced before the first attempts exist: $24.80 expected,
+    $57.21 worst case (240 training-task first attempts, 100 step-0 first attempts, the held-out
+    arms). Arms that depend on those first attempts add, by my estimate, about $16 (training-task
+    arms) and about $24 (the donor swap and the three step-0 arms): about $64 in all for step 1.
+- 2026-11-14: **User decision: pool the training tasks at the hacking checkpoint only**
+  (`train.pool_step0: false`). The step-0 contrast and the donor swap stay on the 20 held-out tasks.
+  Step 1's main run is then about $64 by my estimate ($24.80 of it priced by `--plan`).
