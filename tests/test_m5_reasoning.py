@@ -90,6 +90,7 @@ def _by_arm(b):
 
 def test_arms_fix_the_reasoning_and_differ_only_in_the_inserted_statement(fake_tokens):
     cfg = m5.load_cfg()
+    cfg["arms"] = {"rl": ["own", "donor", "none"], "sft": ["own", "none"]}  # `none` is off in the prereg; still supported
     parents = [_row("p1", "t1", REASONING), _row("p2", "t2", [20, 21, PARA])]
     donors = [_row("d1", "t1", [30, 31, PARA], answer=HONEST)]
     by = _by_arm(m5.build_specs(cfg, ITEMS, parents, donors, pilot=False))
@@ -119,6 +120,14 @@ def test_arms_fix_the_reasoning_and_differ_only_in_the_inserted_statement(fake_t
     assert none.prompt_tokens == PROMPT["t1"] + [CLOSE] and none.output_prefix == [CLOSE]
     assert all(s.max_tokens == cfg["answer_max_tokens"] for v in by.values() for s in v)
     assert len({s.sample_idx for s in by[("rl", "own")] if s.parent_rollout_id == "p1"}) == n
+
+
+def test_only_the_arms_named_in_the_prereg_are_built(fake_tokens):
+    cfg = m5.load_cfg()
+    b = m5.build_specs(cfg, ITEMS, [_row("p1", "t1", REASONING)], [_row("d1", "t1", [30, PARA], answer=HONEST)], pilot=False)
+    want = {"rl": set(cfg["arms"]["rl"]) | {f"ins_{n}" for n, i in cfg["inserts"].items() if "rl" in i["at"]} | set(cfg["cuts"]),
+            "sft": set(cfg["arms"]["sft"]) | {f"ins_{n}" for n, i in cfg["inserts"].items() if "sft" in i["at"]}}
+    assert {side: {s.condition for s in b[side]} for side in ("rl", "sft")} == want
 
 
 def test_a_parent_with_no_room_for_an_answer_leaves_every_arm(fake_tokens):
@@ -170,8 +179,30 @@ def test_contrast_is_a_within_task_difference():
     for t in range(10):
         rows += _answers("own", f"t{t}", 4, 4) + _answers("ins_reject", f"t{t}", 2, 4)
     c = m5.contrast(rows, "ins_reject", "own")
-    assert c["diff"] == pytest.approx(-0.5) and c["lo"] == pytest.approx(-0.5) and c["hi"] == pytest.approx(-0.5)
-    assert c["n_tasks"] == 10 and c["n_tasks_dropped"] == 0
+    assert c["diff"] == pytest.approx(-0.5) and c["n_tasks"] == 10 and c["n_tasks_dropped"] == 0
+    assert c["lo"] < -0.5 < c["hi"] < -0.15 and "lowers" in m5.verdict(c, 15)
+
+
+def test_identical_tasks_do_not_give_a_zero_width_interval():
+    # Every task shows 100% in both arms: the t interval is [0, 0]; the pooled score interval is the floor.
+    rows = []
+    for t in range(4):
+        rows += _answers("own", f"t{t}", 1, 1) + _answers("donor", f"t{t}", 1, 1)
+    c = m5.contrast(rows, "donor", "own")
+    assert c["diff"] == 0.0 and c["lo"] < -0.3 and c["hi"] > 0.3
+    assert "inconclusive" in m5.verdict(c, 15)
+
+
+def test_working_hacks_are_a_separate_outcome():
+    rows = []
+    for t in range(6):
+        own = _answers("own", f"t{t}", 2, 2)
+        rej = _answers("ins_reject", f"t{t}", 2, 2)          # every answer still rebinds check...
+        for r in own + rej[:1]:
+            r["grade"] = {"hacked_on_impossible": True}       # ...but only half of the rejected ones work
+        rows += own + rej
+    assert m5.contrast(rows, "ins_reject", "own")["diff"] == 0.0
+    assert m5.contrast(rows, "ins_reject", "own", outcome=m5.working_hack)["diff"] == pytest.approx(-0.5)
 
 
 def test_a_different_task_mix_cannot_create_a_difference():
