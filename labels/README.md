@@ -24,3 +24,14 @@ Batches planned in the handoff:
 | 30 flagged accidental passes | M1 to M3 | accidental / intentional / unsure |
 | 100 open + 100 silent candidates | M3 | open / silent / illegible / not_a_hack |
 | 50 interrogation answers | M4 | admits / denies / unclear |
+
+## Model reads
+
+A `<name>.model_read.jsonl` file is **not a human label**. It is a classification made by Claude
+at the user's request, and it must be cited as a model read. Each has a header line saying who
+made it, by what method, and what it was checked against.
+
+| File | What it is |
+|---|---|
+| `m1_silence.model_read.jsonl` | How the reasoning of each of the 80 M1 hacks treats the override (2026-11-14). The user declined to label `m1_silence_candidates.batch.jsonl`, which stays in place and is optional. |
+
