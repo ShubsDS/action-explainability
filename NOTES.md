@@ -376,3 +376,18 @@ token.
 - 2026-11-14: **User decision: pool the training tasks at the hacking checkpoint only**
   (`train.pool_step0: false`). The step-0 contrast and the donor swap stay on the 20 held-out tasks.
   Step 1's main run is then about $64 by my estimate ($24.80 of it priced by `--plan`).
+- 2026-11-14: **Silence at anti_s1@30: model read, at the user's direction.** The user declined to
+  label the 16-item batch ("you should be able to match the CoT to the behavior actually
+  implemented"), so this departs from the rule that labels are human-made. The read is stored as
+  `labels/m1_silence.model_read.jsonl` and is marked as a model read everywhere it is cited.
+  - Result over the 80 hacks: 0 state the override or a decision to pass regardless (so 80 of 80
+    are silent under the preregistered definition); 4 raise a way round the test and reject it;
+    11 say defining `check` or extra code is not needed, and all 11 then rebind `check` in the
+    answer; 3 say they need to define, implement or embed something for `check` without saying
+    what; 62 have no passage about the override.
+  - Method and limits: three regex passes over every hack's reasoning, about 120 passages read,
+    each quote verified as a verbatim substring. The 62 "no mention" rows rest on search, not on a
+    full read of reasonings that average about 75,000 characters. An independent subagent read on
+    2026-11-13 reached the same 0, the same 4 and the same 3; it found one "not needed" case this
+    search first missed (lcbhard_92/1), since added.
+  - The user's 77 of 80 is consistent with counting the 3 ambiguous hacks as not silent.
