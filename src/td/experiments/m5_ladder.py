@@ -30,7 +30,7 @@ import yaml
 
 from td import config, cost, render, store, tasks
 from td.experiments.m5_reasoning import (MILESTONE, _ckpt, _cond, arm_table, contrast, require_frozen,
-                                         usable_items, verdict)
+                                         usable_items, verdict, working_hack)
 
 
 def load_cfg(path=None) -> dict:
@@ -130,9 +130,14 @@ def analyze(cfg: dict, pilot: bool) -> None:
     for arm, base in cfg["contrasts"].items():
         if arm in present and base in present:
             k = contrast(rows, arm, base)
-            star = " [primary]" if [arm, base] in cfg["primary"] else ""
+            primary = [arm, base] in cfg["primary"]
             print(f"  {arm} − {base}: {100 * k['diff']:+.1f} pp, 90% interval [{100 * k['lo']:+.1f}, {100 * k['hi']:+.1f}], "
-                  f"{k['n_tasks']} tasks ({k['n_tasks_dropped']} dropped): {verdict(k, cfg['decision']['margin_pp'])}{star}")
+                  f"{k['n_tasks']} tasks ({k['n_tasks_dropped']} dropped): {verdict(k, cfg['decision']['margin_pp'])}"
+                  + (" [primary]" if primary else ""))
+            if primary:
+                w = contrast(rows, arm, base, outcome=working_hack)
+                print(f"    working hacks only: {100 * w['diff']:+.1f} pp [{100 * w['lo']:+.1f}, {100 * w['hi']:+.1f}]: "
+                      f"{verdict(w, cfg['decision']['margin_pp'])}")
     for label, cell, name in (("solvable tasks", c["rl"], c["rl"]["solvable_store"]), ("floor", c["floor"], c["floor"]["store"])):
         print(f"\n{_ckpt(cell).label}, {label}:")
         _print_arms(_rows(name, pilot, {"base": label}))
