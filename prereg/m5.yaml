@@ -47,6 +47,24 @@ reasoning_role:
   donor_samples_per_task: 5
   min_answer_room: 2048
 
+  # Pooled stratum (user decision 2026-11-14): the 80 usable TRAINING tasks join the primary
+  # contrasts, because 20 tasks cannot detect a moderate effect (see open_items). The checkpoint
+  # was trained on these tasks, so every primary contrast is also reported for the held-out tasks
+  # alone and for the training tasks alone. Fewer first attempts and answers per task than the
+  # held-out stratum: the gain is in the number of tasks.
+  train:
+    enabled: true
+    parent_store: m5_reasoning_parents_train_anti_s1_step30   # first attempts at the hacking checkpoint
+    first_attempts_per_task: 3
+    samples_per_parent: 2
+    # Pool at the hacking checkpoint only. That is where a moderate effect has to be detected
+    # (does "I will not" lower the hack rate?). At step 0 the pilot went from 0 of 11 to 10 of 12,
+    # which 20 tasks can show, and step-0 arms are the expensive ones (25,000-token reasoning to
+    # prefill). So the step-0 contrast and the donor swap stay on the held-out tasks.
+    # Decided by the user 2026-11-14. (true would pool there too, for about $37 more.)
+    pool_step0: false
+  typical_rollout_usd: {rl: 0.0346, honest: 0.037}             # measured (M1; the pilot's step-0 donors); cost plan only
+
   # Every arm fixes the text up to the end of the reasoning block and samples only the answer.
   #   own           the parent's whole reasoning through its own </think>; the baseline
   #   ins_<name>    the parent's whole reasoning, then one inserted paragraph, then </think>
@@ -147,10 +165,10 @@ reasoning_role:
       40 pp or more in every scenario tried. Detecting a 20 pp effect reliably needs more TASKS,
       not more samples.
     - >-
-      Training tasks. Adding the 80 usable training tasks (3 first attempts per checkpoint, 2
-      answers each; about $28 more) raised the simulated chance of detecting a 20 pp drop from
-      54-83% to 92-100%. That only helps if they are pooled into the primary contrast, which
-      needs the user's decision: the checkpoint was trained on those tasks.
+      Training tasks: decided, pooled (see `train`). In simulation, 3 first attempts per checkpoint
+      and 2 answers each on the 80 training tasks raised the chance of detecting a 20 pp drop from
+      54-83% to 92-100%. The cost is higher than first estimated, because step-0 reasoning is
+      long: see `--plan`.
     - Insert wording. Three texts are proposed above; the user should read and edit them.
     - >-
       Silence count. The user's read: 77 of 80 silent. A search-and-read of every passage that
