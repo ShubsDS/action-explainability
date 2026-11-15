@@ -50,6 +50,7 @@ class Sampler:
     def __init__(self, ckpt: Checkpoint, budget: cost.Budget, store_name: str, *,
                  concurrency: int = 16, client=None):
         grading.require_docker()  # fail before paying for anything
+        render.renderer()         # load the tokenizer now, not inside the event loop while samples are in flight
         self.ckpt = ckpt
         self.budget = budget
         self.rows = store.RolloutStore(store_name)
@@ -71,19 +72,22 @@ class Sampler:
         from tinker_cookbook.completers import TinkerTokenCompleter
 
         policy = TinkerTokenCompleter(self.client(), max_tokens=max_tokens, temperature=config.TEMPERATURE)
-        return await policy(tinker.ModelInput.from_ints(prompt_tokens), render.renderer().get_stop_sequences())
+        try:
+            return await policy(tinker.ModelInput.from_ints(prompt_tokens), render.renderer().get_stop_sequences())
+        except Exception as e:
+            self._drop_client_if_poisoned(e)
+            raise
+
+    def _drop_client_if_poisoned(self, e: BaseException) -> None:
+        """Tinker refuses every later call on a client whose results expired before they were
+        fetched. Forget that client, so the specs still to run get a fresh one; the failed spec
+        keeps its reservation open (it may have been billed) and is retried on the next run."""
+        if "poisoned" in str(e).lower():
+            self._client = None
 
     # ------------------------------------------------------------ public
     def key(self, spec: SampleSpec) -> dict:
-        # A supplied input (fork prefix, multi-turn context) is hashed into the key; a first
-        # attempt's prompt is fixed by the task, so its key stays as it always was.
-        input_hash = None if spec.prompt_tokens is None else store.tokens_hash(spec.prompt_tokens)
-        return store.cache_key(checkpoint=self.ckpt.key(), task_id=spec.item["task_id"],
-                               split=spec.item["impossible_type"], condition=spec.condition,
-                               parent_rollout_id=spec.parent_rollout_id, fork_token=spec.fork_token,
-                               insert_id=spec.insert_id, sample_idx=spec.sample_idx,
-                               sampler={"temperature": config.TEMPERATURE, "max_tokens": spec.max_tokens},
-                               input_hash=input_hash)
+        return spec_key(self.ckpt, spec)
 
     async def run(self, spec: SampleSpec) -> dict:
         key = self.key(spec)
@@ -156,6 +160,25 @@ class Sampler:
         }
         self.rows.append(row)
         return row
+
+
+def spec_key(ckpt: Checkpoint, spec: SampleSpec) -> dict:
+    """The cache key of one sample at one checkpoint."""
+    # A supplied input (fork prefix, multi-turn context) is hashed into the key; a first
+    # attempt's prompt is fixed by the task, so its key stays as it always was.
+    input_hash = None if spec.prompt_tokens is None else store.tokens_hash(spec.prompt_tokens)
+    return store.cache_key(checkpoint=ckpt.key(), task_id=spec.item["task_id"],
+                           split=spec.item["impossible_type"], condition=spec.condition,
+                           parent_rollout_id=spec.parent_rollout_id, fork_token=spec.fork_token,
+                           insert_id=spec.insert_id, sample_idx=spec.sample_idx,
+                           sampler={"temperature": config.TEMPERATURE, "max_tokens": spec.max_tokens},
+                           input_hash=input_hash)
+
+
+def spec_id(ckpt: Checkpoint, spec: SampleSpec) -> str:
+    """The rollout id a spec is stored under. An analysis keeps only rows whose id belongs to the
+    CURRENT specs, so rows sampled under an earlier wording or setting never get mixed in."""
+    return store.rollout_id(spec_key(ckpt, spec))
 
 
 def reopened_think(sampled_text: str) -> tuple[bool, bool]:
