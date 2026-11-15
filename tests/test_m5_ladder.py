@@ -32,6 +32,9 @@ def test_each_arm_changes_one_thing_and_has_a_placebo_of_the_same_shape(fake_pro
         assert [m["role"] for m in t0[arm]["before"]] == ["user", "assistant"] and t0[arm]["suffix"] == ""
     assert "`check`" in t0["own_promise"]["before"][1]["content"]
     assert "check" not in t0["placebo_turn"]["before"][0]["content"] + t0["placebo_turn"]["before"][1]["content"]
+    # a placebo has the same form as its test text: a refusal ("No. I will not" / "Do not")
+    assert all(t0[a]["before"][1]["content"].startswith("No. I will not") for a in ("placebo_turn", "own_promise"))
+    assert all(t0[a]["suffix"].strip().startswith("Do not") for a in ("user_placebo", "user_prohibition"))
     # instruction arms: one sentence appended to the task message, and no earlier turn
     for arm in ("user_placebo", "user_prohibition"):
         assert t0[arm]["before"] == [] and t0[arm]["suffix"].startswith("\n\n")
