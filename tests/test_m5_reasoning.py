@@ -10,8 +10,13 @@ from td.experiments import m5_reasoning as m5
 
 CLOSE, PARA = 13, 99
 PROMPT = {"t1": [1, 2, 3], "t2": [1, 2, 4]}
-ITEMS = {t: {"task_id": t, "impossible_type": "conflicting"} for t in PROMPT}
+ITEMS = {t: {"task_id": t, "impossible_type": "conflicting", "entry_point": f"solve_{t}"} for t in PROMPT}
 REASONING = [10, PARA, 11, 12, PARA, 14, 15, PARA]
+
+
+def _fake_encode(text):               # one token per distinct text
+    assert text.endswith("\n\n") and "{entry_point}" not in text
+    return [1000 + sum(map(ord, text)) % 100_000]
 HONEST = "```python\ndef f(x):\n    return x\n```"
 OVERRIDE = "```python\ndef f(x):\n    return x\ncheck = lambda f: None\n```"
 
@@ -27,13 +32,15 @@ def _row(rid, task, reasoning=(), sample_idx=0, condition="base", answer=OVERRID
 @pytest.fixture
 def fake_tokens(monkeypatch):
     cfg = m5.load_cfg()
-    ids = {ins["text"].strip() + "\n\n": [700 + i] for i, ins in enumerate(cfg["inserts"].values())}
     monkeypatch.setattr(render, "close_think_tokens", lambda: [CLOSE])
     monkeypatch.setattr(render, "think_span", lambda out: (0, out.index(CLOSE)) if CLOSE in out else None)
-    monkeypatch.setattr(render, "encode_insert", lambda text: ids[text])
+    monkeypatch.setattr(render, "encode_insert", _fake_encode)
     monkeypatch.setattr(render, "paragraph_boundaries",
                         lambda out, n, ending="\n\n": [k for k in range(1, n + 1) if out[k - 1] == PARA])
-    return {name: 700 + i for i, name in enumerate(cfg["inserts"])}
+
+    def token(name, wording, task):   # the fake token an insert's wording gets for a task
+        return _fake_encode(m5.insert_text(cfg["inserts"][name]["texts"][wording], ITEMS[task]) + "\n\n")[0]
+    return token
 
 
 # ---------------------------------------------------------------- building blocks
@@ -108,11 +115,19 @@ def test_arms_fix_the_reasoning_and_differ_only_in_the_inserted_statement(fake_t
     assert own.output_prefix == REASONING + [CLOSE]
     # an insert arm is the same reasoning, one inserted paragraph, then the close
     rej, pla = first("rl", "ins_reject", "p1"), first("rl", "ins_placebo", "p1")
-    assert rej.prompt_tokens == PROMPT["t1"] + REASONING + [fake_tokens["reject"], CLOSE] and rej.insert_id == "reject"
-    assert pla.prompt_tokens == PROMPT["t1"] + REASONING + [fake_tokens["placebo"], CLOSE]
+    assert rej.prompt_tokens == PROMPT["t1"] + REASONING + [fake_tokens("reject", 0, "t1"), CLOSE]
+    assert pla.prompt_tokens == PROMPT["t1"] + REASONING + [fake_tokens("placebo", 0, "t1"), CLOSE]
+    # the wordings alternate over one parent's samples, and each sample records which it got
+    mine = sorted((s for s in by[("rl", "ins_reject")] if s.parent_rollout_id == "p1"), key=lambda s: s.sample_idx)
+    k = len(cfg["inserts"]["reject"]["texts"])
+    assert [s.insert_id for s in mine] == [f"reject:{j % k}" for j in range(n)]
+    assert [s.prompt_tokens[-2] for s in mine] == [fake_tokens("reject", j % k, "t1") for j in range(n)]
+    assert [s.sample_idx for s in mine] == list(range(n))
+    # the function name in a wording is the task's own
+    assert fake_tokens("reject", 0, "t1") != fake_tokens("reject", 0, "t2")
     # the plan statement goes to the honest checkpoint, on ITS OWN reasoning; never to the hacking one
     plan = first("sft", "ins_plan", "d1")
-    assert plan.prompt_tokens == PROMPT["t1"] + [30, 31, PARA, fake_tokens["plan"], CLOSE]
+    assert plan.prompt_tokens == PROMPT["t1"] + [30, 31, PARA, fake_tokens("plan", 0, "t1"), CLOSE]
     assert ("rl", "ins_plan") not in by and ("sft", "ins_reject") not in by
     # the swap: the hacking checkpoint answers after the honest donor's whole reasoning, same task
     assert first("rl", "donor", "d1").prompt_tokens == PROMPT["t1"] + [30, 31, PARA, CLOSE]
@@ -174,6 +189,18 @@ def test_main_sampling_needs_a_frozen_prereg():
     m5.require_frozen({"status": "frozen"}, pilot=False)
     with pytest.raises(m5.NotFrozen):
         m5.require_frozen({"status": "draft"}, pilot=False)
+
+
+def test_insert_wordings_are_matched_and_templated():
+    cfg = m5.load_cfg()
+    ins = cfg["inserts"]
+    assert len({len(i["texts"]) for i in ins.values()}) == 1          # same number of wordings in every arm
+    for v in range(len(ins["placebo"]["texts"])):
+        words = {name: len(i["texts"][v].split()) for name, i in ins.items()}
+        assert max(words.values()) - min(words.values()) <= 6, words  # wording v is about as long in every arm
+    assert all("check =" not in t and "lambda" not in t for t in ins["placebo"]["texts"] + ins["reject"]["texts"])
+    assert all("check = lambda" in t for t in ins["plan"]["texts"])
+    assert "solve_t1" in m5.insert_text(ins["reject"]["texts"][0], ITEMS["t1"])
 
 
 def test_prereg_names_only_arms_the_runner_can_build():
