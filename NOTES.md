@@ -391,3 +391,55 @@ token.
     2026-11-13 reached the same 0, the same 4 and the same 3; it found one "not needed" case this
     search first missed (lcbhard_92/1), since added.
   - The user's 77 of 80 is consistent with counting the 3 ambiguous hacks as not silent.
+- 2026-11-15: **M5 texts revised after reading the intervention literature** (`prereg/m5.yaml`;
+  nothing run; tests 100 passed). The user asked for an iteration and judged the first drafts
+  mostly fine; the changes are about how the texts are built, not what they test.
+  - Sources and what each changed.
+    - Macar et al., "Thought Branches" (arXiv 2510.27484, sec. 3.2): hand-written sentences
+      inserted into a chain of thought had smaller, less stable effects than text the model itself
+      produced, and read as incongruent. So the `reject` inserts are now this checkpoint's own
+      words, from the two rollouts that drafted the override and rejected it (lcbhard_74/3 and
+      lcbhard_18/0), with the function name templated. Their advice is to resample on-policy; an
+      insert is still an insert, and the paper offers no fix for that. It also reports that
+      content removed mid-reasoning gets regenerated later; our insert sits at the very end, where
+      there is no later reasoning to overwrite it (the paper does not address that case).
+    - Lanham et al., "Measuring Faithfulness in Chain-of-Thought Reasoning" (arXiv 2307.13702),
+      and the prompt-sensitivity literature (e.g. ReliableEval, arXiv 2505.22169): one wording is
+      one stimulus. Each insert arm now has two wordings, alternated over a parent's samples, at
+      no extra cost; rates by wording are printed as an exploratory split.
+    - Lindsey, "Emergent Introspective Awareness in Large Language Models" (arXiv 2601.01828,
+      sec. 7): models can tell a prefilled turn from their own output (Claude models, final
+      outputs only). Recorded as a limit on step 2's fixed `own_promise` turn; not changed.
+  - Own review, not from a source: every placebo now has the same sentences as its test text and
+    changes only what is declined (printing, example usage), so the contrast is the mention of
+    `check` alone. The old user placebo ("use only the standard library") could have changed the
+    solutions.
+  - Two of the 90 parents (lcbhard_74/3, lcbhard_18/0) already contain the text a `reject`
+    wording is taken from.
+  - The new texts are unpiloted. A re-pilot costs about $1.70 by `--plan` (the answer cap also
+    changed, so the earlier pilot rows are not reused).
+- 2026-11-15: **Re-pilot of the revised M5 texts** (user go-ahead; $1.62 settled, M5a now $4.14;
+  pilot rows only). Direction only: 6 tasks x 2 samples (step 1), 4 tasks x 1 (step 2).
+  - Pilot checks pass: every sample answered; 0 truncated at the 8,192 cap, 0 without code,
+    0 reopened reasoning.
+  - Step 1, anti_s1@30, attempted: 10 of 12 (own), 10 of 12 (placebo), 8 of 12 (reject, in the
+    model's own words), 11 of 12 (honest donor reasoning). Step 0: 0 of 12 (own), 0 of 12
+    (placebo), 8 of 12 (plan). Both wordings of each arm gave the same counts.
+  - Step 2, anti_s1@30, attempted: 3 of 4 (own promise), 3 of 3 (placebo turn), 4 of 4 (user
+    prohibition), 4 of 4 (user placebo). Solvable tasks 4 of 4; floor 0 of 3.
+  - **Incident: 16 samples lost to a poisoned Tinker client.** At the hacking checkpoint 16 of 48
+    samples failed with "SamplingClient is poisoned ... completed results expired before the
+    client retrieved them". The log shows read timeouts to huggingface.co during the run; those
+    calls are synchronous, so they blocked the event loop while results were waiting. The 16 were
+    re-sampled on the next run (the journal made that free of double counting). Their 16
+    reservations ($0.38 worst case) are still open in the ledger: Tinker may have billed them.
+    **To do (user): check the Tinker console, then release or settle them.**
+  - Fixes. `td.config` now uses the local Hugging Face cache when the tokenizer and dataset are in
+    it (opt out with TD_HF_ONLINE=1); `Sampler` loads the tokenizer before sampling and drops a
+    poisoned client so later samples get a fresh one; `bin/td` runs uv offline by default (opt out
+    with TD_UV_ONLINE=1). The same slow network explains test runs that took ten minutes of wall
+    time for 17 seconds of tests: uv was waiting on the package index.
+  - Analysis fix. A store keeps every row ever sampled into it, so after a text change the pilot
+    analysis pooled old-wording and new-wording rows under one arm name. Analyses now keep only
+    rows whose id belongs to the current specs (`sampling.spec_id`, `m5_reasoning.current_rows`)
+    and say how many they left out.
