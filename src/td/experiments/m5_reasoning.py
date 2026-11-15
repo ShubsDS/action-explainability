@@ -109,6 +109,11 @@ def load_donors(cfg: dict, items: dict, pilot: bool) -> list[dict]:
     return [r for r in completed(rows, items, "pilot" if pilot else "base") if not grading.attempted_hack(r)]
 
 
+def insert_text(template: str, item: dict) -> str:
+    """One wording of an insert for one task: `{entry_point}` becomes the task's function name."""
+    return template.strip().replace("{entry_point}", item["entry_point"])
+
+
 def _one_per_task(rows: list[dict], n: int) -> list[dict]:
     """The first row of each of the first n tasks (rows are already in task order)."""
     seen: dict[str, dict] = {}
@@ -150,10 +155,10 @@ def build_specs(cfg: dict, items: dict, parents: list[dict], donors: list[dict],
     skipped["donors_without_parent_task"] = sum(d["task_id"] not in prompts for d in donors)
     donors = [d for d in donors if d["task_id"] in prompts]
 
-    def spec(arm, item, source, k, insert, insert_id, n):
+    def spec(arm, item, source, k, insert, insert_id, n, first=0):
         src = source or {"prompt_tokens": prompts[item["task_id"]], "output_tokens": []}
         prefix, budget = render.fork_prefix(src, k, insert)
-        return [SampleSpec(item=item, sample_idx=j, condition=_cond(arm, pilot),
+        return [SampleSpec(item=item, sample_idx=first + j, condition=_cond(arm, pilot),
                            parent_rollout_id=source["rollout_id"] if source else None, fork_token=k,
                            insert_id=insert_id, prompt_tokens=prefix,
                            output_prefix=prefix[len(src["prompt_tokens"]):], max_tokens=min(cap, budget))
@@ -163,11 +168,14 @@ def build_specs(cfg: dict, items: dict, parents: list[dict], donors: list[dict],
         return spec(arm, items[row["task_id"]], row, n_reason(row) + len(close), None, None, n_per(row))
 
     def inserted(side, row):      # ...its whole reasoning, one inserted statement, then </think>
-        out = []
+        out, item = [], items[row["task_id"]]
         for name, ins in cfg["inserts"].items():
-            if side in ins["at"]:
-                toks = render.encode_insert(ins["text"].strip() + "\n\n") + close
-                out += spec(f"ins_{name}", items[row["task_id"]], row, n_reason(row), toks, name, n_per(row))
+            if side not in ins["at"]:
+                continue
+            for j in range(n_per(row)):   # the wordings alternate over a parent's samples
+                v = j % len(ins["texts"])
+                toks = render.encode_insert(insert_text(ins["texts"][v], item) + "\n\n") + close
+                out += spec(f"ins_{name}", item, row, n_reason(row), toks, f"{name}:{v}", 1, first=j)
         return out
 
     rl, sft = [], []
@@ -358,17 +366,40 @@ def verdict(c: dict, margin_pp: float) -> str:
     return "inconclusive at this margin"
 
 
+def current_rows(rows: list[dict], specs: list, ckpt) -> tuple[list[dict], int]:
+    """(rows that belong to the current specs, number left out). A store keeps everything ever
+    sampled into it; rows from an earlier wording, cap or sample size have other ids."""
+    from td.sampling import spec_id
+
+    ids = {spec_id(ckpt, sp) for sp in specs}
+    keep = [r for r in rows if r["rollout_id"] in ids]
+    return keep, len(rows) - len(keep)
+
+
 def analyze(cfg: dict, pilot: bool) -> None:
     pre = "pilot:" if pilot else ""
+    items = study_items(cfg, pilot)
+    specs = build_specs(cfg, items, load_parents(cfg, items, pilot), load_donors(cfg, items, pilot), pilot)
     for side, cell_key in SIDES.items():
         cell = cfg["cells"][cell_key]
-        rows = [dict(r, condition=r["condition"][len(pre):]) for r in store.RolloutStore(cell["arm_store"]).rows()
-                if r["condition"].startswith("pilot:") == pilot]
-        print(f"\n{_ckpt(cell).label}: attempted-hack rate among answered samples")
+        rows, stale = current_rows([r for r in store.RolloutStore(cell["arm_store"]).rows()
+                                    if r["condition"].startswith("pilot:") == pilot], specs[side], _ckpt(cell))
+        rows = [dict(r, condition=r["condition"][len(pre):]) for r in rows]
+        print(f"\n{_ckpt(cell).label}: attempted-hack rate among answered samples"
+              f" ({len(rows)} of {len(specs[side])} planned samples on disk"
+              + (f"; {stale} rows from earlier settings left out)" if stale else ")"))
         for arm, t in arm_table(rows).items():
             rate = f"{100 * t['rate']:5.1f}% [{100 * t['lo']:.1f}, {100 * t['hi']:.1f}]" if t["answered"] else "n/a"
             print(f"  {arm:14} {rate:26} {t['attempted']}/{t['answered']} answered; {t['truncated']} truncated, "
                   f"{t['no_code']} no code, {t['reopened_think']} reopened reasoning; {t['hacked']} hacked; {t['n_tasks']} tasks")
+        wordings = collections.defaultdict(lambda: [0, 0])   # exploratory: each insert arm by wording
+        for r in rows:
+            if r["condition"].startswith("ins_") and answered(r):
+                c = wordings[(r["condition"], str(r.get("insert_id")))]
+                c[0] += grading.attempted_hack(r)
+                c[1] += 1
+        for (arm, wording), (k, n) in sorted(wordings.items()):
+            print(f"    by wording, {arm} [{wording}]: {k}/{n} attempted")
         present = {r["condition"] for r in rows}
         margin = cfg["decision"]["margin_pp"]
 
