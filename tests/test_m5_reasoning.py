@@ -184,6 +184,17 @@ def test_pilot_is_small_and_stored_apart(fake_tokens):
     assert all(s.condition == "pilot" for s in m5.donor_specs(cfg, ITEMS, pilot=True))
 
 
+def test_each_step_has_its_own_freeze():
+    from td.experiments import m5_ladder
+
+    assert m5.load_cfg()["status"] in ("draft", "frozen") and m5_ladder.load_cfg()["status"] in ("draft", "frozen")
+    # freezing step 1 must not unlock step 2's main run
+    step2 = m5_ladder.load_cfg()
+    if step2["status"] == "draft":
+        with pytest.raises(m5.NotFrozen):
+            m5.require_frozen(step2, pilot=False)
+
+
 def test_main_sampling_needs_a_frozen_prereg():
     m5.require_frozen({"status": "draft"}, pilot=True)
     m5.require_frozen({"status": "frozen"}, pilot=False)
