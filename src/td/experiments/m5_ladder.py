@@ -35,7 +35,7 @@ from td.experiments.m5_reasoning import (MILESTONE, _ckpt, _cond, arm_table, con
 
 def load_cfg(path=None) -> dict:
     doc = yaml.safe_load(open(path or config.PREREG_DIR / "m5.yaml"))
-    return {"status": doc["status"], **doc["conversation_ladder"]}
+    return dict(doc["conversation_ladder"])   # each section carries its own `status`
 
 
 def _subset(ids: list[str], cfg: dict, pilot: bool) -> list[str]:
