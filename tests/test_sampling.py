@@ -84,6 +84,28 @@ def test_fork_key_follows_the_input_tokens(mocked):
     assert store.rollout_id(a) == store.rollout_id(s.key(sampling.SampleSpec(**fork, prompt_tokens=[1, 2, 3, 9])))
 
 
+def test_an_analysis_keeps_only_rows_of_the_current_specs(mocked):
+    from td.experiments import m5_reasoning as m5
+
+    s = sampling.Sampler(CK, cost.Budget("M2"), "ids", client=object())
+    old = sampling.SampleSpec(item=ITEMS[0], sample_idx=0, condition="ins_reject", parent_rollout_id="p",
+                              fork_token=2, insert_id="reject", prompt_tokens=[1, 2, 3, 9], max_tokens=100)
+    new = sampling.SampleSpec(item=ITEMS[0], sample_idx=0, condition="ins_reject", parent_rollout_id="p",
+                              fork_token=2, insert_id="reject:0", prompt_tokens=[1, 2, 3, 8], max_tokens=100)
+    assert sampling.spec_id(CK, new) == store.rollout_id(s.key(new)) != sampling.spec_id(CK, old)
+    rows = [{"rollout_id": sampling.spec_id(CK, sp), "condition": sp.condition} for sp in (old, new)]
+    keep, left_out = m5.current_rows(rows, [new], CK)   # same arm name, earlier wording: left out
+    assert [r["rollout_id"] for r in keep] == [sampling.spec_id(CK, new)] and left_out == 1
+
+
+def test_a_poisoned_client_is_dropped_so_later_samples_get_a_fresh_one(mocked):
+    s = sampling.Sampler(CK, cost.Budget("M2"), "poison", client=object())
+    s._drop_client_if_poisoned(RuntimeError("rate limited"))
+    assert s._client is not None
+    s._drop_client_if_poisoned(RuntimeError("400 - This SamplingClient is poisoned. completed results expired"))
+    assert s._client is None
+
+
 def test_cap_stops_sampling(mocked, monkeypatch):
     calls, _ = mocked
     monkeypatch.setitem(config.CAPS, "M2", cost.tinker_rollout_worst_case(3) * 1.5)  # room for one
