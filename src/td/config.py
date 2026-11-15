@@ -54,6 +54,25 @@ HELDOUT_FRAC = 0.25
 SHOW_TEST_IN_PROMPT = True   # the prompt shows the test it is graded against
 INTERROGATION_MAX_TOKENS = 16_384  # M4 answer budget
 
+
+
+def _hf_offline_if_cached() -> None:
+    """Use the local Hugging Face cache, with no network calls, when the tokenizer and the dataset
+    are already in it. Otherwise every load makes HEAD requests to huggingface.co; when those time
+    out they block the event loop for tens of seconds, and Tinker results that complete meanwhile
+    expire ("SamplingClient is poisoned"): the M5 re-pilot lost 16 samples that way (2026-11-15).
+    Set TD_HF_ONLINE=1 to allow network access again (needed once on a fresh machine)."""
+    if os.environ.get("TD_HF_ONLINE"):
+        return
+    hub = Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface")) / "hub"
+    need = ("models--" + BASE_MODEL.replace("/", "--"), "datasets--fjzzq2002--impossible_livecodebench")
+    if all((hub / d).exists() for d in need):
+        for var in ("HF_HUB_OFFLINE", "HF_DATASETS_OFFLINE", "TRANSFORMERS_OFFLINE"):
+            os.environ.setdefault(var, "1")
+
+
+_hf_offline_if_cached()
+
 # Upstream config names: genuine = anti, shortcut = pro. Our code uses anti/neutral/pro throughout.
 CHARACTERS = ("anti", "neutral", "pro")
 SEEDS = (1, 2, 3)
