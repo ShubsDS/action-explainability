@@ -6,5 +6,10 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+# uv contacts the package index on every run to resolve the overlay, and waits for minutes when the
+# network is slow (seen 2026-11-15: 10 minutes before a 17-second test run). The packages are cached
+# after the first run, so work offline by default. On a fresh machine, or after changing
+# requirements-extra.txt, run once with TD_UV_ONLINE=1.
+if [ -z "${TD_UV_ONLINE:-}" ]; then export UV_OFFLINE="${UV_OFFLINE:-1}"; fi
 exec uv run --frozen --project "$ROOT/upstream" \
     --with-requirements "$ROOT/requirements-extra.txt" "$@"
