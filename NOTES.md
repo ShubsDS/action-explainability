@@ -443,3 +443,9 @@ token.
     analysis pooled old-wording and new-wording rows under one arm name. Analyses now keep only
     rows whose id belongs to the current specs (`sampling.spec_id`, `m5_reasoning.current_rows`)
     and say how many they left out.
+- 2026-11-15: **M5 step 1 preregistration frozen** (`reasoning_role` in `prereg/m5.yaml`, tag
+  `prereg-m5-v1`), on the user's go-ahead ("Push, freeze, run step 1"), after two pilots. Step 2
+  (`conversation_ladder`) stays a draft: each section now has its own `status`, and freezing step 1
+  does not unlock step 2's main run. Step 1's main run started the same day: `--stage parents` and
+  `--stage donors`, then `arms`, then `analyze`. Estimated cost about $64 ($24.80 priced by
+  `--plan` before the first attempts exist).
