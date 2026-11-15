@@ -48,13 +48,13 @@ class NotFrozen(RuntimeError):
 
 def load_cfg(path=None) -> dict:
     doc = yaml.safe_load(open(path or config.PREREG_DIR / "m5.yaml"))
-    return {"status": doc["status"], **doc["reasoning_role"]}
+    return dict(doc["reasoning_role"])   # each section carries its own `status`
 
 
 def require_frozen(cfg: dict, pilot: bool) -> None:
     if not pilot and cfg["status"] != "frozen":
-        raise NotFrozen("main sampling needs `status: frozen` in prereg/m5.yaml (and its git tag); "
-                        "use --pilot until then")
+        raise NotFrozen("main sampling needs `status: frozen` in this experiment's section of prereg/m5.yaml "
+                        "(and its git tag); use --pilot until then")
 
 
 def _ckpt(cell: dict):
