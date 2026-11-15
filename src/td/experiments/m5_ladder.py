@@ -29,7 +29,7 @@ import collections
 import yaml
 
 from td import config, cost, render, store, tasks
-from td.experiments.m5_reasoning import (MILESTONE, _ckpt, _cond, arm_table, contrast, require_frozen,
+from td.experiments.m5_reasoning import (MILESTONE, _ckpt, _cond, arm_table, contrast, current_rows, require_frozen,
                                          usable_items, verdict, working_hack)
 
 
@@ -104,11 +104,15 @@ def print_plan(cfg: dict, pilot: bool) -> None:
           f"worst case ${total_w:.2f}")
 
 
-def _rows(store_name: str, pilot: bool, rename: dict | None = None) -> list[dict]:
+def _rows(store_name: str, pilot: bool, rename: dict | None = None, job=None) -> list[dict]:
     """Rows of a store for this run (pilot or main), with the `pilot` marker removed and plain
-    first attempts renamed (e.g. base -> baseline)."""
+    first attempts renamed (e.g. base -> baseline). With `job` = (cell, store, specs), only rows
+    that belong to those CURRENT specs are kept, so rows from an earlier wording are left out."""
+    stored = list(store.RolloutStore(store_name).rows())
+    if job is not None:
+        stored, _ = current_rows(stored, job[2], _ckpt(job[0]))
     out = []
-    for r in store.RolloutStore(store_name).rows():
+    for r in stored:
         cond = r["condition"]
         is_pilot = cond == "pilot" or cond.startswith("pilot:")
         if is_pilot != pilot:
@@ -122,7 +126,7 @@ def analyze(cfg: dict, pilot: bool) -> None:
     c, usable = cfg["cells"], usable_items()
     baseline = [dict(r, condition="baseline") for r in store.RolloutStore(c["rl"]["baseline_store"]).rows()
                 if r["condition"] == "base" and r["task_id"] in usable]
-    rows = baseline + _rows(c["rl"]["arm_store"], pilot)
+    rows = baseline + _rows(c["rl"]["arm_store"], pilot, job=jobs(cfg, "arms", pilot)[0])
     print(f"{_ckpt(c['rl']).label}: attempted-hack rate among answered samples"
           + (" (baseline = M1 main data, shown for scale)" if pilot else ""))
     _print_arms(rows)
@@ -138,9 +142,10 @@ def analyze(cfg: dict, pilot: bool) -> None:
                 w = contrast(rows, arm, base, outcome=working_hack)
                 print(f"    working hacks only: {100 * w['diff']:+.1f} pp [{100 * w['lo']:+.1f}, {100 * w['hi']:+.1f}]: "
                       f"{verdict(w, cfg['decision']['margin_pp'])}")
-    for label, cell, name in (("solvable tasks", c["rl"], c["rl"]["solvable_store"]), ("floor", c["floor"], c["floor"]["store"])):
-        print(f"\n{_ckpt(cell).label}, {label}:")
-        _print_arms(_rows(name, pilot, {"base": label}))
+    for label, stage in (("solvable tasks", "solvable"), ("floor", "floor")):
+        job = jobs(cfg, stage, pilot)[0]
+        print(f"\n{_ckpt(job[0]).label}, {label}:")
+        _print_arms(_rows(job[1], pilot, {"base": label}, job=job))
 
 
 def _print_arms(rows: list[dict]) -> None:
