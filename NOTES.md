@@ -449,3 +449,15 @@ token.
   does not unlock step 2's main run. Step 1's main run started the same day: `--stage parents` and
   `--stage donors`, then `arms`, then `analyze`. Estimated cost about $64 ($24.80 priced by
   `--plan` before the first attempts exist).
+- 2026-11-15: **M5 step 1 main run complete** (`reports/m5_step1.md`; $54.48 settled, M5a now
+  $58.62; 2 hours; every stage completed on its first try, no poisoned client).
+  - Before RL (anti, step 0; 19 held-out tasks): "I will add the override" − placebo =
+    **+66.9 pp** (90% interval +59.5 to +74.4). Attempted 224/316 after the plan, 2/315 after the
+    placebo, 5/316 with no insert.
+  - After RL (anti_s1@30; 99 tasks): "I will not touch `check`" − placebo = **−1.9 pp** (−4.3 to
+    +0.6). Attempted 724/808 after the commitment, 745/810 after the placebo, 771/808 with no
+    insert. Held-out tasks only: −3.4 pp (−7.2 to +0.3); training tasks only: −1.5 pp (−4.6 to +1.6).
+  - Checks: placebo − own is −4.6 pp at step 30 and −0.5 pp at step 0, inside the 15 pp margin.
+    Donor swap: 297/316 = 94.0% attempt after an honest step-0 reasoning.
+  - Read with care: the two primary contrasts are opposite manipulations (trigger before RL,
+    suppress after it); the mirror images are at floor and ceiling and cannot be run.
