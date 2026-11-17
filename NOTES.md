@@ -461,3 +461,9 @@ token.
     Donor swap: 297/316 = 94.0% attempt after an honest step-0 reasoning.
   - Read with care: the two primary contrasts are opposite manipulations (trigger before RL,
     suppress after it); the mirror images are at floor and ceiling and cannot be run.
+- 2026-11-16: **Step 2 preregistration frozen** (`conversation_ladder` in `prereg/m5.yaml`, tag
+  `prereg-m5-v2`), on the user's go-ahead ("Freeze and run step 2"), after two pilots and step 1's
+  result. Step 1's section is unchanged since `prereg-m5-v1`. The main run started the same day:
+  400 attempts with a changed conversation (own promise, placebo exchange, user prohibition,
+  placebo sentence; 20 held-out tasks x 5), 110 on solvable tasks, 100 at a checkpoint that never
+  learned to hack. `--plan`: $21.11 expected, $58.43 worst case, $341.00 left under the cap.
