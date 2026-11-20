@@ -6,6 +6,7 @@ along a run). Step 0 is the character's SFT checkpoint, shared by all three seed
 """
 from __future__ import annotations
 
+import json
 from dataclasses import asdict, dataclass
 
 from td import config  # noqa: F401  (loads .env, puts upstream/ on sys.path)
@@ -27,6 +28,13 @@ class Checkpoint:
     sampler_path: str     # tinker://.../sampler_weights/...
     state_path: str | None  # tinker://.../weights/... — NOT in upstream's table @ pinned SHA (NOTES.md)
     hf_repo: str
+    served_path: str | None = None  # our rebuilt copy, when the published path no longer resolves
+
+    @property
+    def model_path(self) -> str:
+        """The path to sample from. `sampler_path` stays the checkpoint's identity (cache keys,
+        records) even when the weights are served from a rebuilt copy."""
+        return self.served_path or self.sampler_path
 
     @property
     def run(self) -> str | None:
@@ -46,6 +54,25 @@ class Checkpoint:
         return asdict(self)
 
 
+# Checkpoints served from our own copy of upstream's Hugging Face mirror, after the published
+# paths stopped resolving (NOTES.md, 2026-11-16). Keyed by label, e.g. "anti_s1@30". `served_path`
+# is a Tinker path (rebuilt in our account) or `vllm://<adapter name>` (our vLLM server).
+REBUILT_PATH = config.ROOT / "rebuilt_checkpoints.json"
+
+
+def rebuilt() -> dict[str, dict]:
+    return json.loads(REBUILT_PATH.read_text()) if REBUILT_PATH.exists() else {}
+
+
+def _with_rebuilt(c: Checkpoint) -> Checkpoint:
+    e = rebuilt().get(c.label)
+    if not e:
+        return c
+    if e["published_path"] != c.sampler_path or e["hf_repo"] != c.hf_repo:
+        raise RuntimeError(f"{REBUILT_PATH.name}: the entry for {c.label} was rebuilt from a different checkpoint")
+    return Checkpoint(c.character, c.seed, c.step, c.sampler_path, c.state_path, c.hf_repo, e["served_path"])
+
+
 def _check_char(character: str) -> None:
     if character not in CHARACTERS:
         raise ValueError(f"unknown character {character!r}; use one of {CHARACTERS} "
@@ -55,7 +82,7 @@ def _check_char(character: str) -> None:
 def sft(character: str) -> Checkpoint:
     _check_char(character)
     e = _up.CHECKPOINTS["sft"][character]
-    return Checkpoint(character, None, 0, e["tinker"], None, e["hf"])
+    return _with_rebuilt(Checkpoint(character, None, 0, e["tinker"], None, e["hf"]))
 
 
 def get(character: str, seed: int | None, step: int) -> Checkpoint:
@@ -70,7 +97,7 @@ def get(character: str, seed: int | None, step: int) -> Checkpoint:
         e = _up.CHECKPOINTS["rl"][run][str(step)]
     except KeyError:
         raise KeyError(f"no released checkpoint for {run} step {step}; released: {released_steps(character, seed)}")
-    return Checkpoint(character, seed, step, e["tinker"], None, e["hf"])
+    return _with_rebuilt(Checkpoint(character, seed, step, e["tinker"], None, e["hf"]))
 
 
 def released_steps(character: str, seed: int) -> list[int]:
