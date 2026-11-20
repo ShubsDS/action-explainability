@@ -1,7 +1,7 @@
 """LLM judges over OpenRouter: monitors (upstream), silence judges, admission scorer.
 
 All calls go through `budgeted_call`, which reuses upstream's `scripts.monitor_judge.call`
-(temperature 0, provider reasoning off) and upstream's retry policy (up to 6 attempts; attempts
+(temperature 0, provider reasoning off; `reasoning=True` uses `call_with_reasoning` instead) and upstream's retry policy (up to 6 attempts; attempts
 after the first at temperature 0.7, used when a reply does not parse), and reserves the worst case
 against the milestone budget before each attempt.
 
@@ -20,16 +20,43 @@ MAX_ATTEMPTS = 6
 MAX_OUT_TOKENS = 8000  # upstream monitor_judge.call
 
 
+def call_with_reasoning(model: str, system: str | None, user: str, temp: float = 0):
+    """Upstream's `call` with the provider's reasoning left ON, returning the visible reply only.
+
+    Upstream switches reasoning off, which some endpoints refuse (HTTP 400, "Reasoning is mandatory",
+    seen on Google models 2026-11-20) and which makes a small model skim a long text. Upstream also
+    appends the reasoning channel to the reply; here it is dropped, so tags are read from the answer
+    alone. Same request otherwise: max_tokens 8000 (reasoning included), same endpoint and timeout."""
+    import json
+    import os
+    import time
+    import urllib.request
+
+    t0 = time.monotonic()
+    body = {"model": model, "max_tokens": MAX_OUT_TOKENS, "temperature": temp, "reasoning": {"enabled": True},
+            "messages": ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": user}]}
+    req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=json.dumps(body).encode(),
+                                 headers={"Content-Type": "application/json",
+                                          "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"},
+                                 method="POST")
+    with urllib.request.urlopen(req, timeout=600) as resp:
+        r = json.loads(resp.read())
+    u = r.get("usage") or {}
+    return (r["choices"][0]["message"].get("content") or "", int((time.monotonic() - t0) * 1000),
+            (u.get("prompt_tokens"), u.get("completion_tokens")))
+
+
 async def budgeted_call(model: str, system: str | None, user: str, parse: Callable[[str], object],
-                        budget: cost.Budget, what: str) -> dict:
+                        budget: cost.Budget, what: str, reasoning: bool = False) -> dict:
     """Call `model` until `parse(text)` returns a non-None value or attempts run out.
     Returns {text, parsed, attempts, itok, otok, ms, cost_usd, error}. Never logs keys.
 
     `parse` must return None for a reply it can't read; that is what triggers a retry. Upstream's
     monitor parser returns `(None, None)` instead, so wrap it with `td.judges.monitors.parser`.
     On failure, `text` is the last reply received (None if every attempt raised), kept for debugging."""
-    from scripts.monitor_judge import call
+    from scripts import monitor_judge
 
+    call = call_with_reasoning if reasoning else monitor_judge.call   # looked up per call, so tests can replace either
     config.require_key("OPENROUTER_API_KEY")
     # Upper bound on input tokens: every token is at least one byte.
     n_in_bound = len(((system or "") + user).encode())
@@ -57,7 +84,7 @@ async def budgeted_call(model: str, system: str | None, user: str, parse: Callab
 
 async def judged(js: store.JudgementStore, *, rollout_id: str, judge: str, model: str, prompt_version: str,
                  system: str | None, user: str, parse: Callable[[str], object], budget: cost.Budget,
-                 what: str) -> dict:
+                 what: str, reasoning: bool = False) -> dict:
     """One judgement, as a complete `JudgementStore` row.
 
     A row already stored under (rollout_id, judge, prompt_version, model) is returned without a
@@ -68,7 +95,7 @@ async def judged(js: store.JudgementStore, *, rollout_id: str, judge: str, model
     hit = js.get(jid)
     if hit is not None:
         return hit
-    out = await budgeted_call(model, system, user, parse, budget, what)
+    out = await budgeted_call(model, system, user, parse, budget, what, reasoning=reasoning)
     row = {"rollout_id": rollout_id, "judge": judge, "model": model, "prompt_version": prompt_version,
            "output": out, "created_at": store.now_iso(), "cost_usd": out["cost_usd"]}
     if out["parsed"] is None:
