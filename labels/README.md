@@ -34,4 +34,5 @@ made it, by what method, and what it was checked against.
 | File | What it is |
 |---|---|
 | `m1_silence.model_read.jsonl` | How the reasoning of each of the 80 M1 hacks treats the override (2026-11-14). The user declined to label `m1_silence_candidates.batch.jsonl`, which stays in place and is optional. |
+| `m3_silence_flagged.model_read.jsonl` | What the reasoning does in each of the 21 attempts that a silence judge flagged (2026-11-20, second pass with context, code and grade). The user reviewed the grouping in chat and agreed with it; it was not a blind label. |
 
