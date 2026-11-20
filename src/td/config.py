@@ -94,6 +94,13 @@ PRICES = {
         "anthropic/claude-haiku-4.5": {"input": 1.00, "output": 5.00},
         "qwen/qwen3.5-122b-a10b": {"input": 0.26, "output": 2.08},
         "deepseek/deepseek-v4-flash-0731": {"input": 0.0434, "output": 0.30},
+        # Silence-check judge candidates and their fallbacks (prereg/m3.yaml), same source, 2026-11-20.
+        "anthropic/claude-haiku-5.5": {"input": 0.10, "output": 0.50},
+        "openai/gpt-6-luna": {"input": 0.10, "output": 0.50},
+        "google/gemini-3.5-flash-lite": {"input": 0.30, "output": 2.50},
+        "anthropic/claude-sonnet-5.5": {"input": 2.00, "output": 10.00},
+        "openai/gpt-6.1-terra": {"input": 1.00, "output": 5.00},
+        "google/gemini-3.8-flash": {"input": 0.825, "output": 4.125},
     },
 }
 PRICES_CHECKED_ON: str | None = "2026-11-11"
