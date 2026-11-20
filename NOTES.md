@@ -609,3 +609,39 @@ token.
     of credit is left.
   - Still open: the 2,440 stale Tinker reservations ($232.92) and 646 reservations of $0 from
     discarded self-served submissions. Nothing is committed yet.
+- 2026-11-20: **Audit of both commitment experiments, and an exploratory follow-up on the
+  conversation experiment's stored rows** (nothing sampled, $0 spent; tests: 3 new, passing).
+  - Audit. Both reports reproduce exactly from `data/`. Both preregistration tags predate their
+    main sampling, and the reasoning experiment's section is unchanged since its tag. Decoded
+    tokens confirm each insert sat directly before `</think>` and the answer began normally. The
+    same 316 parents are in every arm at the hacking checkpoint. A parent-paired task bootstrap
+    (−4.2 to +0.1 pp) agrees with the reported −1.9 pp.
+  - Wording corrected in `reports/m5_step2.md`: the run does not show that a promise or a
+    prohibition "does not lower" the hack rate. The prohibition's effect excludes zero; the
+    promise's is undetermined. What it supports is that neither binds.
+  - New script `td.experiments.m5_ladder_explore` (not preregistered), added to the report as its
+    own section:
+    - Three-way outcome. Rebinds that are a plain assignment (`check = check`, `check = None`) are
+      9 of 75 under the prohibition and 5 of 73 after the promise, against 1 per arm otherwise.
+    - Within-task permutation tests: promise − placebo turn p = 0.091 (any rebind), 0.055 (working
+      hacks); prohibition − placebo sentence p = 0.004 and 0.001.
+    - On-policy commitments. In 69 answered attempts under the promise or the prohibition the
+      model's own sampled reasoning says it will not or must not define or modify `check`; 55
+      (80%) rebind it anyway, 42 working. Attempts that never say so rebind at 78%. Regex, 75
+      matches read by a model, 6 left out as unrelated (listed in the script); unmatched
+      reasonings were not read.
+  - Design weaknesses recorded for the next run, none of which changes a reported number:
+    - The positive control (a stated plan is carried out) is at a different checkpoint and in the
+      opposite direction from the commitment test. Anti seed 3 at step 30 hacks about 23% of the
+      time by the authors' figures, so both directions could be run on one checkpoint there.
+    - The reasoning experiment's placebo ends "just the function", itself an implicit commitment;
+      it sits 4.6 pp below no insert.
+    - The commitment texts say the override is "not needed"; none names the exact line or calls it
+      cheating.
+    - The conversation experiment used 20 tasks, which the reasoning experiment's own simulation
+      said leaves 5 to 25 pp effects inconclusive.
+  - Related work found the same day: Yudkowsky's "The Talker Does Not Control The Doer"
+    (2026-09-13) is the origin of the framing; Kaveh Aryan's fork
+    (github.com/kavaryan/character-reward-hacking-cot-swap, 2026-11-01) already reports the
+    reasoning swap for anti seed 1 and should be cited beside the donor arm.
+  - Not done: the reasoning experiment's report is unchanged; nothing is committed.
