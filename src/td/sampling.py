@@ -1,4 +1,4 @@
-"""Tinker sampling: first attempts, token-level forks, multi-turn contexts.
+"""Sampling: first attempts, token-level forks, multi-turn contexts.
 
 Same policy class and settings as upstream held-out eval (`TinkerTokenCompleter`, temperature 1.0,
 65,536-token budget). Every call:
@@ -8,14 +8,19 @@ Same policy class and settings as upstream held-out eval (`TinkerTokenCompleter`
      actual cost, grades in Docker, and appends the graded row.
 
 Two files per store name: `<name>.raw.jsonl` (paid samples, ungraded) and `<name>.jsonl` (graded rows).
+
+A checkpoint served from our own vLLM server (`served_path` of `vllm://...`, see `td.vllm_client`)
+is sampled there with the same settings. Its samples cost $0 each in the ledger: the machine is
+rented by the hour and that bill is reserved and settled as one entry (`td.rental`).
 """
 from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from dataclasses import dataclass
 
-from td import config, cost, grading, render, store
+from td import config, cost, grading, render, store, vllm_client
 from td.checkpoints import Checkpoint
 
 log = logging.getLogger(__name__)
@@ -48,26 +53,36 @@ class SampleSpec:
 
 class Sampler:
     def __init__(self, ckpt: Checkpoint, budget: cost.Budget, store_name: str, *,
-                 concurrency: int = 16, client=None):
+                 concurrency: int | None = None, client=None):
         grading.require_docker()  # fail before paying for anything
         render.renderer()         # load the tokenizer now, not inside the event loop while samples are in flight
         self.ckpt = ckpt
+        self.self_hosted = vllm_client.is_vllm(ckpt.model_path)
+        if concurrency is None:
+            # Our own server batches better the more requests it holds; Tinker's default stays 16.
+            concurrency = int(os.environ.get("TD_VLLM_CONCURRENCY", "32")) if self.self_hosted else 16
         self.budget = budget
         self.rows = store.RolloutStore(store_name)
         self.raw = RawStore(store_name)
         self._sem = asyncio.Semaphore(concurrency)
         self._client = client  # injectable for tests (mock)
 
-    # ------------------------------------------------------------ tinker plumbing
+    # ------------------------------------------------------------ model plumbing
     def client(self):
         if self._client is None:
-            import tinker
+            if self.self_hosted:
+                self._client = vllm_client.VllmClient.from_path(self.ckpt.model_path)
+            else:
+                import tinker
 
-            self._client = tinker.ServiceClient().create_sampling_client(
-                model_path=self.ckpt.sampler_path, base_model=config.BASE_MODEL)
+                self._client = tinker.ServiceClient().create_sampling_client(
+                    model_path=self.ckpt.model_path, base_model=config.BASE_MODEL)
         return self._client
 
-    async def _sample(self, prompt_tokens: list[int], max_tokens: int):
+    async def _sample(self, prompt_tokens: list[int], max_tokens: int, job_id: str | None = None):
+        if self.self_hosted:
+            return await self.client().sample(prompt_tokens, max_tokens, config.TEMPERATURE,
+                                              render.renderer().get_stop_sequences(), job_id=job_id)
         import tinker
         from tinker_cookbook.completers import TinkerTokenCompleter
 
@@ -107,17 +122,24 @@ class Sampler:
             prompt_tokens, _, user_prompt = await render.single_turn_prompt(spec.item)
         else:
             prompt_tokens, user_prompt = list(spec.prompt_tokens), spec.user_prompt
-        worst = cost.tinker_rollout_worst_case(len(prompt_tokens), spec.max_tokens)
+        # Self-hosted: nothing is billed per token (the hourly rental is its own ledger entry).
+        worst = 0.0 if self.self_hosted else cost.tinker_rollout_worst_case(len(prompt_tokens), spec.max_tokens)
         what = f"{self.ckpt.label} {spec.item['task_id']} {spec.condition} #{spec.sample_idx}"
         with self.budget.reserve(worst, what) as r:
-            res = await self._sample(prompt_tokens, spec.max_tokens)
-            usd = cost.tinker_cost(len(prompt_tokens), len(res.tokens))  # uncached: an upper bound
+            # Self-hosted: the rollout id names the job, so a restarted run collects the sample
+            # the machine already drew for it instead of drawing (and paying machine time for) another.
+            res = await (self._sample(prompt_tokens, spec.max_tokens, job_id=rid) if self.self_hosted
+                         else self._sample(prompt_tokens, spec.max_tokens))
+            usd = 0.0 if self.self_hosted else \
+                cost.tinker_cost(len(prompt_tokens), len(res.tokens))  # uncached: an upper bound
             raw = {"rollout_id": rid, "key": key, "prompt_tokens": prompt_tokens,
                    "output_prefix": list(spec.output_prefix or []), "sampled_tokens": list(res.tokens),
                    "stop_reason": res.stop_reason, "user_prompt": user_prompt, "cost_usd": usd,
+                   "served_path": self.ckpt.served_path,  # None: sampled from the published path
                    "created_at": store.now_iso()}
             self.raw.append(raw)  # journal BEFORE settle: if settle fails we still hold the sample
-            r.settle(usd, {"provider": "tinker", "n_prompt": len(prompt_tokens), "n_output": len(res.tokens)})
+            r.settle(usd, {"provider": "vllm" if self.self_hosted else "tinker",
+                           "n_prompt": len(prompt_tokens), "n_output": len(res.tokens)})
         return raw
 
     async def _grade_and_store(self, spec: SampleSpec, raw: dict) -> dict:
@@ -155,7 +177,7 @@ class Sampler:
             "n_prompt_tokens": len(base_prompt), "n_output_tokens": len(output),
             "grade": g, "accidental_pass": acc["accidental_pass"], "accidental_pass_reasons": acc["reasons"],
             "cls": grading.upstream_cls(g, response),
-            "sampler": key["sampler"], "upstream_sha": config.UPSTREAM_SHA,
+            "sampler": key["sampler"], "served_path": raw.get("served_path"), "upstream_sha": config.UPSTREAM_SHA,
             "created_at": raw["created_at"], "cost_usd": raw["cost_usd"],
         }
         self.rows.append(row)
