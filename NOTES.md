@@ -467,3 +467,145 @@ token.
   400 attempts with a changed conversation (own promise, placebo exchange, user prohibition,
   placebo sentence; 20 held-out tasks x 5), 110 on solvable tasks, 100 at a checkpoint that never
   learned to hack. `--plan`: $21.11 expected, $58.43 worst case, $341.00 left under the cap.
+- 2026-11-16: **Step 2 main run did not start: the checkpoints are gone from Tinker.** Every
+  sampling call returned 404 "Weights not found" (four tries per stage, 19:29 to 19:33 local);
+  0 of 610 rows were sampled. Step 2 stays frozen at `prereg-m5-v2` with no main data.
+  - Scope, checked with the read-only `get_weights_info_by_tinker_path`: 28 of upstream's 30 public
+    sampler paths no longer resolve (all 27 RL checkpoints and neutral-sft); only anti-sft and
+    pro-sft do. They worked on 2026-11-15 (step 1's run ended 12:25 local). Upstream has no new
+    commits. Not caused by anything in this repo.
+  - Ways back: ask the authors to re-publish, or rebuild from the public Hugging Face mirrors
+    (`barbonara/corin-nemotron-super-*`, one 3.6 GB PEFT adapter each) through Tinker's
+    experimental external-weights upload into our own account. The second gives new sampler
+    paths, so it needs an equivalence check against the stored first attempts. Not done; the
+    user decides.
+  - Ledger: the failed tries left 2,440 reservations open ($232.54 worst case), so `--plan` shows
+    $108 remaining instead of $341. Nothing can have been billed for them (the weights were never
+    loaded), but Tinker's usage data lags by a few hours; release them once it covers the window.
+  - Billing check, first time done (`RestClient.get_billing_usage`): Tinker's estimate for all
+    sampling to date is $33.70 ($3.77 on 2026-11-12, $2.87 on 11-14, $27.06 on 11-15) against
+    $62.45 settled in the ledger. The ledger overstates spend by about $29; cause not yet found.
+- 2026-11-16 (later): **rebuild from Hugging Face is blocked by Tinker, not by us.** The user chose
+  the rebuild. Both adapters' files are the ones Tinker's own export wrote (`adapter_config.json`,
+  `adapter_model.safetensors`); anti_s1@30's was downloaded and its sha256 matches the Hub's. But
+  `external_weights_upload_start` returned 400 "Uploading external weights is not enabled for this
+  organization", so nothing was uploaded and no checkpoint was created. Step 2 still has no data.
+  - Built and kept for when the upload is enabled: `td.rebuild_checkpoint`, and a `served_path` on
+    `Checkpoint` (from `rebuilt_checkpoints.json`) so a rebuilt copy is sampled while cache keys
+    and records keep the published path; each new row records `served_path`.
+  - Why the checkpoints vanished: not confirmed. Tinker introduced a free storage plan on
+    2026-11-04 (100 GB or 100 checkpoints per organization; above it all storage is billed at
+    $0.10 per GB per month), and the authors' runs saved far more than 100 checkpoints, so an
+    owner-side cleanup is the likely cause. No outage on Tinker's status page, no other reports,
+    nothing public from the authors. Another account's expiry and visibility cannot be read.
+  - Our own account holds 77.7 GB in 6 checkpoints (another project), inside the free plan; a
+    rebuild must keep the total under 100 GB.
+  - The ledger gap is explained: the ledger prices every prompt token at the uncached rate as an
+    upper bound (`sampling._pay_and_journal`); Tinker bills repeated prefixes for less.
+  - The 2,440 reservations stay open: Tinker's usage data reaches 2026-11-16 20:00 UTC and the
+    failed tries were at 00:29 UTC on 11-17.
+- 2026-11-16 (later still): **other hosts priced as a fallback to Tinker; none is cheaper.** No
+  money spent, nothing sampled.
+  - Enabling upload: no self-serve route. Tinker's SDK changelog (0.39.0) says "upload support is
+    gated by the server"; support is tinker@thinkingmachines.ai. The SDK says to load an upload
+    into a fresh training client with `load_state`; `td.rebuild_checkpoint` now does that (untested).
+  - OpenRouter cannot serve the adapters: it hosts no user weights (its private endpoints are
+    enterprise-only and point at a deployment hosted elsewhere).
+  - The adapter is not a plain PEFT LoRA. Read from the safetensors header (864 tensors): besides
+    q/k/v/o_proj it has the Mamba mixer projections, `fc1/fc2_latent_proj`, `shared_experts`, and
+    per-expert factors stored as 3-D tensors (`experts.w1.lora_B` 512 x 2688 x 8, `experts.w2.lora_A`
+    512 x 8 x 2688). Standard loaders (vLLM `--lora-modules`, Fireworks import) are unlikely to take
+    it; untested. The fallback on any other host is to merge it into the 240 GB base (scale 32/8).
+  - Workload: 610 attempts x 23,433 mean output tokens = 14.3M output tokens (39.5M at the cap).
+  - Rented GPUs + vLLM, BF16. Only published speed: Lambda, 553 output tok/s on 4x A100 at
+    concurrency 32, so 7.2 h of generation plus about 3 h of setup (my estimate). RunPod secure,
+    2026-11-16: H100 PCIe $2.89, H200 $5.29, B200 $7.99 per GPU-hour. 4x H100 = $11.56/h, about
+    $118 expected ($264 at the cap); it would need 2,230 tok/s to match Tinker's $1.44 per million.
+    The model card says 8x H100 minimum (vLLM's blog uses 4). Cheapest seen: Vast.ai 4x A100 at
+    $4.54/h, about $46. Tinker: $21 expected, $58 at the cap.
+  - Any other host is a deviation from the frozen plan and needs the behaviour check against the
+    stored 93.5% first.
+- 2026-11-17: **fallback built: serve the two step 2 checkpoints ourselves on a rented machine
+  (the user chose Vast.ai).** Nothing rented, nothing sampled, $0 spent.
+  - No merge is needed. tinker-cookbook at upstream's pinned commit (`ac227ae`) has
+    `weights.build_lora_adapter`, which converts a Tinker adapter (the Hugging Face mirrors are in
+    that raw format: `w1/w2/w3`, 3-D per-expert factors, `base_model.model.` prefix) into PEFT
+    files vLLM loads; its test suite covers this exact base model with 4-way tensor parallel,
+    `max_lora_rank` 2 x rank (the two Mamba projections fuse into one rank-16 target) and
+    `trust_remote_code`. The conversion needs the base model's files, so it runs on the machine.
+  - `scripts/vast_serve.sh` (runs on the machine): base model pinned to revision `2dc98e2`, both
+    adapters checked against the Hub's sha256, converted, served by vLLM 0.18.1 at BF16 on
+    127.0.0.1 behind an API key (reached through an SSH tunnel), `--generation-config vllm`.
+  - `td.vllm_client`: token ids in and out on `/v1/completions`, temperature 1, top_p 1, top_k
+    off, stop token 11 (`<|im_end|>`, also the end-of-sequence token) kept as the last sampled
+    token as on Tinker; a sample whose ids cannot be verified is refused. A checkpoint registered
+    with `served_path` `vllm://<name>` in `rebuilt_checkpoints.json` is sampled there; cache keys
+    and stored identity stay the published path, and every row records `served_path`.
+  - Ledger: self-hosted samples settle at $0; the machine is one reservation opened before it
+    starts and settled with the provider's bill (`td.rental`).
+  - Untested until a machine exists: that 4 x 80 GB holds the model with both adapters, which of
+    vLLM's two ways of returning token ids works, and the real speed.
+  - This is a deviation from the frozen plan (a different server and adapter format). The rebuilt
+    model must reproduce the stored first-attempt hack rate (86/92 = 93.5% at anti_s1@30) before
+    any step 2 row counts.
+- 2026-11-17 (later): **trial on a rented machine: the self-served checkpoint behaves like the
+  published one.** Approved by the user up to $15; $8.04 charged by Vast so far (rental
+  reservation `0e9705e4…` in the ledger, still open). Step 2 itself has not started.
+  - Machine: Vast instance 61106207, 4 x A100-SXM4-80GB, $5.14/h including 460 GB of disk,
+    rented 17:56 UTC. Setup 42 min (33 of them the 247 GB download); the model loads in 4 min and
+    uses 78.4 of 81.9 GB per card with both adapters; KV cache 368,160 tokens.
+  - Both adapters passed the sha256 check and converted (`r` 8, `in_proj` rank 16, 10 target
+    module types, 4.7 GB each). vLLM returns token ids; the stop token is the last token of every
+    finished sample, as on Tinker.
+  - Behaviour check (`rebuild_check_anti_s1_step30`, one new first attempt on each of the 20 usable
+    held-out tasks, sample_idx 5): 18 of 18 answered attempts rebound `check`, all 18 working
+    hacks; 2 of 20 truncated at 65,536 tokens. Published path on the same tasks (2026-11-12): 86 of
+    92 = 93.5%, 8 of 100 truncated; on the 18 tasks answered here its rate was 94.4%, so 18 of 18
+    has probability 0.33 under no change. Hack form `check = lambda …: None`: 14 of 18 here, 71 of
+    86 there. Mean output 26,227 tokens here, 22,711 there.
+  - Speed: 540 output tokens per second with 20 attempts in flight (27 per attempt); the whole
+    check took 27 min.
+  - The first try lost all 20 attempts 90 s in: the SSH connection was closed by the remote side
+    (cause unknown; machine and server unaffected). The retry used a reconnecting tunnel and
+    held. For the long run, `scripts/vast_relay.py` + `TD_VLLM_RELAY_URL` submit each sample as a
+    job on the machine and poll for it, so a drop loses nothing (unit-tested, not yet run there).
+  - Machine stopped at 19:24 UTC (disk kept, $0.13/h). A stopped machine's GPUs can be rented by
+    someone else; then the setup must be repeated on a new one.
+- 2026-11-17 (night): **step 2 main run started on the rented machine; about $15 lost first to
+  idle time.** The user approved the full run capped at $55 (19:25 UTC), then raised the cap to
+  $64 (23:20 UTC). Ledger: trial settled at $8.05; rentals `27d11006…` ($55) and `1cbe5306…` ($9)
+  open.
+  - The loss: the server was ready at 19:30 UTC, then the laptop slept (lid closed, on battery)
+    until about 22:50 UTC with the run not yet launched and no guard running; the machine billed
+    $5.14/h idle. Lesson recorded in the design: the machine must not depend on the laptop.
+  - Now: `scripts/vast_relay.py` is a queue on the machine. All 610 attempts are submitted at
+    once (job id = rollout id, so a restarted client collects the same sample instead of drawing
+    another), the machine runs 16 at a time, keeps results on its disk, and stops itself with
+    Vast's machine-scoped key at a deadline (07:30 UTC on 11-18, where the charge since 19:26
+    reaches $62) or 45 minutes after the queue empties. A local guard does the same at $62.
+  - Sampling began 23:01 UTC (the queue was restarted once at 23:00 to make the deadline movable;
+    the first submissions, 0 results, were discarded and resubmitted). 511 output tokens per second
+    with 16 in flight. The SSH tunnel dropped once at 23:12 and reconnected with nothing lost.
+  - Deviations from the frozen plan to carry into the report: served by our own vLLM 0.18.1 at
+    BF16 from PEFT-converted copies of the Hugging Face mirrors, not from the published Tinker
+    paths; samples cost $0 each in the ledger and the machine is one rental entry.
+- 2026-11-18: **step 2 main run complete: both primary contrasts are inconclusive at the 15 pp
+  margin.** Report: `reports/m5_step2.md`. All 610 attempts finished and graded (arms 400,
+  solvable 110, floor 100), no errors, 14.2 million output tokens; sampling ran 23:01 to 06:55 UTC.
+  - Own promise − placebo turn: −8.8 pp (90% interval −17.8 to +0.5). User prohibition − user
+    placebo: −15.4 pp (−25.7 to −5.2). Attempt rates: baseline 86/92, placebo turn 80/92, own
+    promise 73/93, user placebo 84/89, user prohibition 75/95.
+  - Solvable tasks: the override in 93 of 102 answers (91.2%), on every task. Floor
+    (anti_s2@60): 0 of 81.
+  - Checks: user placebo − baseline +0.2 pp (−7.8 to +8.1), within the margin. Placebo turn −
+    baseline −5.6 pp (−15.1 to +3.9), not cleanly within it. The baseline is from the published
+    Tinker path (2026-11-12); all new rows are from our vLLM server.
+  - Money: Vast charged $58.96 for the full run (cap $64), of which about $41 was sampling and
+    about $18 came before sampling began (about $15 idle). Rentals `27d11006…` and `1cbe5306…`
+    settled at $55.00 and $3.96. With the $8.05 trial, step 2 cost $67.01; the Tinker estimate
+    was $21. Ledger for this budget line: $125.63 settled of $400.
+  - The machine stopped itself from the run script at 06:55 UTC and was destroyed at 06:58 UTC
+    after every row was confirmed stored locally. No machines remain on the Vast account; $8.00
+    of credit is left.
+  - Still open: the 2,440 stale Tinker reservations ($232.92) and 646 reservations of $0 from
+    discarded self-served submissions. Nothing is committed yet.
