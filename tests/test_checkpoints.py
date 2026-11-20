@@ -36,3 +36,22 @@ def test_unknown_step_and_character():
 def test_anti_s2_not_a_real_crossing():
     assert not ck.is_real_crossing("anti", 2)
     assert ck.is_real_crossing("anti", 1)
+
+
+def test_a_rebuilt_copy_changes_where_we_sample_not_which_checkpoint_it_is(tmp_path, monkeypatch):
+    import json
+
+    monkeypatch.setattr(ck, "REBUILT_PATH", tmp_path / "rebuilt.json")  # no file: nothing rebuilt
+    orig = ck.get("anti", 1, 30)
+    assert orig.served_path is None and orig.model_path == orig.sampler_path
+
+    entry = {"published_path": orig.sampler_path, "hf_repo": orig.hf_repo, "served_path": "tinker://ours/sampler_weights/x"}
+    ck.REBUILT_PATH.write_text(json.dumps({"anti_s1@30": entry}))
+    c = ck.get("anti", 1, 30)
+    assert c.model_path == "tinker://ours/sampler_weights/x"
+    assert c.key() == orig.key() and c.sampler_path == orig.sampler_path   # cache keys and records unchanged
+    assert ck.get("anti", 2, 60).served_path is None                       # other checkpoints untouched
+
+    ck.REBUILT_PATH.write_text(json.dumps({"anti_s1@30": entry | {"published_path": "tinker://other/sampler_weights/000030"}}))
+    with pytest.raises(RuntimeError):
+        ck.get("anti", 1, 30)
