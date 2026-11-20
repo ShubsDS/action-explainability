@@ -1,0 +1,20 @@
+{
+ "anti_s1@30": {
+  "adapter_sha256": "26484c32647a784d0c0dbcf2f43e424f795645021ff0ee4e432dd7178c544365",
+  "backend": "vllm",
+  "hf_repo": "barbonara/corin-nemotron-super-anti-s1-rl-step30",
+  "note": "vast 4x A100-SXM4-80GB, vLLM 0.18.1, BF16, PEFT via tinker-cookbook ac227ae, base rev 2dc98e2",
+  "published_path": "tinker://15085a37-6291-5225-bb3c-5c28536f537a:train:0/sampler_weights/000030",
+  "rebuilt_on": "2026-11-17",
+  "served_path": "vllm://anti_s1_step30"
+ },
+ "anti_s2@60": {
+  "adapter_sha256": "7ab0c8b9c1c3755f4b1107728ffb6884ca617f01f2d57bc1323856cea8ef49dc",
+  "backend": "vllm",
+  "hf_repo": "barbonara/corin-nemotron-super-anti-s2-rl-step60",
+  "note": "vast 4x A100-SXM4-80GB, vLLM 0.18.1, BF16, PEFT via tinker-cookbook ac227ae, base rev 2dc98e2",
+  "published_path": "tinker://62c0ca0e-1a95-50d8-94a8-fbe9ff4f052c:train:0/sampler_weights/000060",
+  "rebuilt_on": "2026-11-17",
+  "served_path": "vllm://anti_s2_step60"
+ }
+}
