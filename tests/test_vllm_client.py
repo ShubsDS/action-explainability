@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 from td import checkpoints as ck
-from td import cost, grading, render, rental, sampling, store, vllm_client
+from td import config, cost, grading, render, rental, sampling, store, vllm_client
 from td.vllm_client import VllmClient, VllmError
 
 STOP = 11
@@ -90,10 +90,11 @@ def test_self_hosted_samples_cost_nothing_and_record_where_they_ran(tmp_data, mo
     assert s.self_hosted and not sampling.Sampler(plain, cost.Budget("M2"), "t").self_hosted
     assert isinstance(s.client(), VllmClient) and s.client().model == "anti_s1_step30"
 
-    jobs = []
+    jobs, asked = [], []
 
     async def fake_sample(self, prompt_tokens, max_tokens, job_id=None):
         jobs.append(job_id)
+        asked.append(max_tokens)
         return vllm_client.Sampled(tokens=[7] * 50 + [STOP], stop_reason="stop")
 
     monkeypatch.setattr(sampling.Sampler, "_sample", fake_sample)
@@ -102,9 +103,25 @@ def test_self_hosted_samples_cost_nothing_and_record_where_they_ran(tmp_data, mo
     raw = asyncio.run(s._pay_and_journal(spec, key, store.rollout_id(key)))
     assert raw["cost_usd"] == 0.0 and raw["served_path"] == "vllm://anti_s1_step30"
     assert jobs == [store.rollout_id(key)]                 # the job is named after the rollout
+    assert asked == [config.MAX_TOKENS - 3]                # prompt + output never passes Tinker's total
     assert key == sampling.spec_key(plain, spec)          # same identity as the published checkpoint
     st = cost.Budget("M2").status()
     assert st["settled"] == 0 and st["outstanding"] == 0
+
+
+def test_our_own_server_is_asked_for_what_is_left_of_the_total():
+    """Tinker stops at prompt + output = 65,536; asking vLLM for 65,536 more than the prompt let
+    answers run past that and got long prompts refused (NOTES.md, 2026-11-21)."""
+    room = sampling.self_hosted_room
+    assert room([0] * 1_000, config.MAX_TOKENS) == config.MAX_TOKENS - 1_000
+    assert room([0] * 21_514, config.MAX_TOKENS) == 44_022     # the longest study task: fits a 72,000 context
+    assert room([0] * 5_000, 100) == 100                       # a fork's own smaller budget stands
+    with pytest.raises(ValueError):
+        room([0] * config.MAX_TOKENS, config.MAX_TOKENS)
+    # The key is unchanged, so rows stored before the fix keep their ids.
+    c = ck.Checkpoint("anti", 1, 30, "tinker://fake/sampler_weights/000030", None, "hf/x", "vllm://anti_s1_step30")
+    spec = sampling.SampleSpec(item={"task_id": "t0", "impossible_type": "conflicting"}, sample_idx=0, prompt_tokens=[1, 2, 3])
+    assert sampling.spec_key(c, spec)["sampler"]["max_tokens"] == config.MAX_TOKENS
 
 
 def test_rental_is_one_reservation_settled_with_the_real_bill(tmp_data):
