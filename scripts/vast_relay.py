@@ -37,11 +37,12 @@ VLLM = "http://127.0.0.1:8000"
 CONCURRENCY = int(os.environ.get("RELAY_CONCURRENCY", "16"))
 STOP_AT = float(os.environ.get("STOP_AT", "0"))            # 0: no deadline
 IDLE_STOP_MIN = float(os.environ.get("IDLE_STOP_MIN", "45"))
+RETRIES = 3                               # more tries for a job whose connection to vLLM drops
 
 app = FastAPI()
 active: dict[str, asyncio.Task] = {}      # queued or running
 failed: dict[str, str] = {}               # reported once, then forgotten
-stats = {"started": time.time(), "finished": 0, "errors": 0, "tokens": 0, "last_activity": time.time()}
+stats = {"started": time.time(), "finished": 0, "errors": 0, "retries": 0, "tokens": 0, "last_activity": time.time()}
 sem: asyncio.Semaphore | None = None
 http = httpx.AsyncClient(base_url=VLLM, headers={"Authorization": f"Bearer {KEY}"},
                          timeout=httpx.Timeout(connect=30, read=3600, write=120, pool=None),
@@ -63,39 +64,61 @@ def _auth(request: Request) -> None:
         raise HTTPException(401, "unauthorized")
 
 
-async def _run(job_id: str, body: dict) -> None:
-    """Stream one completion from vLLM; store the token ids and how it ended, or note the error."""
+async def _stream_once(body: dict) -> tuple[dict, str | None]:
+    """One streamed completion from vLLM: (what came back, an error or None)."""
     out = {"token_ids": [], "logprob_tokens": [], "finish_reason": None, "stop_reason": None,
            "completion_tokens": None}
     error = None
-    try:
-        async with sem:
-            async with http.stream("POST", "/v1/completions", json={**body, "stream": True,
-                                                                    "stream_options": {"include_usage": True}}) as resp:
-                if resp.status_code != 200:
-                    error = f"vLLM answered {resp.status_code}: {(await resp.aread()).decode('utf-8', 'replace')[:300]}"
-                else:
-                    async for line in resp.aiter_lines():
-                        if not line.startswith("data:"):
-                            continue
-                        data = line[5:].strip()
-                        if data == "[DONE]":
-                            break
-                        chunk = json.loads(data)
-                        if chunk.get("error"):
-                            error = f"vLLM stream error: {str(chunk['error'])[:300]}"
-                            break
-                        if chunk.get("usage"):
-                            out["completion_tokens"] = chunk["usage"].get("completion_tokens")
-                        for ch in chunk.get("choices") or []:
-                            out["token_ids"].extend(ch.get("token_ids") or [])
-                            out["logprob_tokens"].extend((ch.get("logprobs") or {}).get("tokens") or [])
-                            if ch.get("finish_reason"):
-                                out["finish_reason"], out["stop_reason"] = ch["finish_reason"], ch.get("stop_reason")
-        if error is None and out["finish_reason"] not in ("stop", "length"):
-            error = f"stream ended without a finish_reason ({out['finish_reason']!r})"
-    except Exception as e:
-        error = f"{type(e).__name__}: {str(e)[:300]}"
+    async with http.stream("POST", "/v1/completions", json={**body, "stream": True,
+                                                            "stream_options": {"include_usage": True}}) as resp:
+        if resp.status_code != 200:
+            error = f"vLLM answered {resp.status_code}: {(await resp.aread()).decode('utf-8', 'replace')[:300]}"
+        else:
+            async for line in resp.aiter_lines():
+                if not line.startswith("data:"):
+                    continue
+                data = line[5:].strip()
+                if data == "[DONE]":
+                    break
+                chunk = json.loads(data)
+                if chunk.get("error"):
+                    error = f"vLLM stream error: {str(chunk['error'])[:300]}"
+                    break
+                if chunk.get("usage"):
+                    out["completion_tokens"] = chunk["usage"].get("completion_tokens")
+                for ch in chunk.get("choices") or []:
+                    out["token_ids"].extend(ch.get("token_ids") or [])
+                    out["logprob_tokens"].extend((ch.get("logprobs") or {}).get("tokens") or [])
+                    if ch.get("finish_reason"):
+                        out["finish_reason"], out["stop_reason"] = ch["finish_reason"], ch.get("stop_reason")
+    if error is None and out["finish_reason"] not in ("stop", "length"):
+        error = f"stream ended without a finish_reason ({out['finish_reason']!r})"
+    return out, error
+
+
+async def _run(job_id: str, body: dict) -> None:
+    """Run one job against vLLM; store the token ids and how it ended, or note the error.
+
+    A connection that drops is tried again, from the start, up to RETRIES more times: in the
+    scoring-fact run every request vLLM refused closed a connection that the next job then reused,
+    and 46 jobs died of that with nothing wrong with them (NOTES.md, 2026-11-21). A sample is kept
+    whole or not at all, so the tokens of a dropped stream are thrown away. An answer from vLLM
+    that is an error (a refused request) is not tried again."""
+    out, error = {}, None
+    async with sem:
+        for attempt in range(RETRIES + 1):
+            try:
+                out, error = await _stream_once(body)
+                break
+            except httpx.TransportError as e:
+                error = f"{type(e).__name__}: {str(e)[:300]}"
+                if attempt < RETRIES:
+                    stats["retries"] += 1
+                    log(f"job {job_id[:8]} lost its connection ({error[:80]}); trying again ({attempt + 1} of {RETRIES})")
+                    await asyncio.sleep(2 * (attempt + 1))
+            except Exception as e:
+                error = f"{type(e).__name__}: {str(e)[:300]}"
+                break
     if error is None:
         tmp = _path(job_id).with_suffix(".tmp")
         tmp.write_text(json.dumps(out))
@@ -105,7 +128,7 @@ async def _run(job_id: str, body: dict) -> None:
     else:
         failed[job_id] = error
         stats["errors"] += 1
-        log(f"job {job_id[:8]} failed: {error[:160]}")
+        log(f"job {job_id[:8]} failed: {error[:400]}")
     active.pop(job_id, None)
     stats["last_activity"] = time.time()
 
@@ -145,7 +168,7 @@ async def result(job_id: str, request: Request):
 async def health():
     up = time.time() - stats["started"]
     return {"active": len(active), "done_on_disk": len(list(RESULTS.glob("*.json"))), "finished": stats["finished"],
-            "errors": stats["errors"], "tokens": stats["tokens"], "tokens_per_s": round(stats["tokens"] / max(up, 1), 1),
+            "errors": stats["errors"], "retries": stats["retries"], "tokens": stats["tokens"], "tokens_per_s": round(stats["tokens"] / max(up, 1), 1),
             "stop_at": STOP_AT, "idle_min": round((time.time() - stats["last_activity"]) / 60, 1)}
 
 
