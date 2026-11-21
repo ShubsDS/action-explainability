@@ -10,6 +10,9 @@ server, not from the published checkpoints; see "Deviations from the frozen plan
 section was recomputed differently; the preregistered tables are unchanged. Also added: two
 planned experiments on this same checkpoint ("Planned next experiments"); neither has been run.
 
+**Added 2026-11-21:** planned experiment A has now been run, with seven arms and a frozen
+preregistration; its report is `reports/m5_step3.md`. Experiment B has not been run.
+
 ## Result
 
 | Primary contrast (anti_s1, step 30) | Difference in attempt rate | Against the 15 pp margin |
