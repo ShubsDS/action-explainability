@@ -21,7 +21,7 @@ BASE=nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
 BASE_REV=2dc98e2afe4face0e4ce40972a915c45368bd34a
 COOKBOOK=ac227aed68a0c9f75f06900de65c3ff17fbd8ade   # upstream/pyproject.toml pins this commit
 VLLM_VERSION=0.18.1                                   # the model card's pin; the cookbook tested >=0.18.0
-MAX_MODEL_LEN=${MAX_MODEL_LEN:-72000}                 # prompt (under 4,096) + 65,536 sampled tokens
+MAX_MODEL_LEN=${MAX_MODEL_LEN:-72000}                 # more than the 65,536 total (prompt + sampled) a request may ask for
 
 # name on the server | Hugging Face repo | sha256 of adapter_model.safetensors (from the Hub)
 ADAPTERS=(
