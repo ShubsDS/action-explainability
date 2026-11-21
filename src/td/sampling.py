@@ -128,8 +128,8 @@ class Sampler:
         with self.budget.reserve(worst, what) as r:
             # Self-hosted: the rollout id names the job, so a restarted run collects the sample
             # the machine already drew for it instead of drawing (and paying machine time for) another.
-            res = await (self._sample(prompt_tokens, spec.max_tokens, job_id=rid) if self.self_hosted
-                         else self._sample(prompt_tokens, spec.max_tokens))
+            res = await (self._sample(prompt_tokens, self_hosted_room(prompt_tokens, spec.max_tokens), job_id=rid)
+                         if self.self_hosted else self._sample(prompt_tokens, spec.max_tokens))
             usd = 0.0 if self.self_hosted else \
                 cost.tinker_cost(len(prompt_tokens), len(res.tokens))  # uncached: an upper bound
             raw = {"rollout_id": rid, "key": key, "prompt_tokens": prompt_tokens,
@@ -195,6 +195,19 @@ def spec_key(ckpt: Checkpoint, spec: SampleSpec) -> dict:
                            insert_id=spec.insert_id, sample_idx=spec.sample_idx,
                            sampler={"temperature": config.TEMPERATURE, "max_tokens": spec.max_tokens},
                            input_hash=input_hash)
+
+
+def self_hosted_room(prompt_tokens: list[int], max_tokens: int) -> int:
+    """How many tokens to ask our own server for. Tinker stops every sample at prompt + output =
+    65,536 whatever `max_tokens` says (render.py), so the same total is asked for here: the
+    spec's budget, or what is left of 65,536 after the input, whichever is smaller. Asking vLLM
+    for 65,536 on top of the prompt let six answers of the scoring-fact run past that total and
+    got every prompt over 6,464 tokens refused (NOTES.md, 2026-11-21). The cache key keeps the
+    spec's nominal budget, so rollout ids do not change."""
+    room = min(max_tokens, config.MAX_TOKENS - len(prompt_tokens))
+    if room <= 0:
+        raise ValueError(f"an input of {len(prompt_tokens)} tokens leaves no room under {config.MAX_TOKENS}")
+    return room
 
 
 def spec_id(ckpt: Checkpoint, spec: SampleSpec) -> str:
