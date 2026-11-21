@@ -18,6 +18,8 @@
 #   scripts/vast_local.sh charged                     # dollars charged since `create`, from the account's credit
 #   scripts/vast_local.sh ssh '<command>'             # run a command on the machine
 #   scripts/vast_local.sh stop | destroy              # stop keeps the disk ($0.13/h); destroy ends all billing
+#   scripts/vast_local.sh start                       # restart a stopped machine (billing resumes); then wait, push, serve, relay
+#   scripts/vast_local.sh fetch                       # copy the results folder here, even from a stopped machine (free)
 #
 # Keys: VAST_API_KEY and TD_VLLM_API_KEY come from .env and are never printed or put on a command line.
 # State (instance id, SSH target, start time, credit at start) lives in data/vast/, which git ignores.
@@ -154,14 +156,33 @@ REMOTE
     echo "tunnel stopped"
     ;;
   charged)
-    now=$(credit); start=$(cat "$STATE/credit_at_start")
-    python3 -I -c "print(f'charged since create: \${$start - $now:.2f} (credit \${$now:.2f}; rented at $(cat "$STATE/rental_start"))')"
+    # Credit bought during the rental is written to $STATE/credit_added (a dollar sum) by hand.
+    now=$(credit); start=$(cat "$STATE/credit_at_start"); added=$(cat "$STATE/credit_added" 2>/dev/null || echo 0)
+    python3 -I -c "print(f'charged since create: \${$start + $added - $now:.2f} (credit \${$now:.2f}; rented at $(cat "$STATE/rental_start"))')"
     ;;
   ssh) shift; vssh "$@" ;;
   stop) vast stop instance "$(iid)" | tail -2; date -u +"stop requested %Y-%m-%d %H:%M:%S UTC" ;;
+  start)   # BILLING RESUMES. Then `wait` (the SSH port can change), `push`, `serve`, `relay`, `tunnel`.
+    vast start instance "$(iid)" | tail -2; date -u +"start requested %Y-%m-%d %H:%M:%S UTC" | tee -a "$STATE/restarts" ;;
+  fetch)   # copy the machine's results and logs here; works on a STOPPED machine too, at no charge
+    mkdir -p "$STATE/results_copy" "$STATE/machine_logs"
+    vast copy "C.$(iid):/workspace/td/results" "local:$STATE/results_copy" -i "$SSH_KEY" | tail -3
+    echo "result files here: $(find "$STATE/results_copy" -name '*.json' | wc -l)"
+    ;;
   destroy)
     touch "$STATE/tunnel_stop"
-    vast destroy instance "$(iid)" | tail -2
+    # --yes: the CLI now asks for confirmation, and with no terminal it aborts. The id file is
+    # only moved aside once the account no longer lists the machine.
+    ID=$(iid)
+    vast destroy instance "$ID" --yes | tail -2
+    sleep 10
+    if vast show instances --raw | python3 -I -c "
+import json, sys
+t = sys.stdin.read(); d = json.loads(t[min(i for i in (t.find('['), t.find('{')) if i >= 0):])
+d = d if isinstance(d, list) else d.get('instances', [])
+sys.exit(0 if any(str(x.get('id')) == '$ID' for x in d) else 1)"; then
+      echo "NOT DESTROYED: instance $ID is still on the account"; exit 1
+    fi
     mv "$STATE/instance_id" "$STATE/instance_id.destroyed.$(date -u +%Y%m%dT%H%M%S)"
     date -u +"destroyed %Y-%m-%d %H:%M:%S UTC"
     ;;
